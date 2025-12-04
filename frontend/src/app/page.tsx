@@ -14,6 +14,9 @@ type Notebook = {
 
 export default function Dashboard() {
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
+  console.log("--- DEBUGGING ENV VARS ---");
+  console.log("Mode:", process.env.NODE_ENV);
+  console.log("API_URL:", process.env.NEXT_PUBLIC_API_URL);
 
  //Base URL
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
