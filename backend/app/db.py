@@ -8,26 +8,25 @@ load_dotenv()
 # 1. Connect to Supabase
 url: str = os.environ.get("SUPABASE_URL")
 key: str = os.environ.get("SUPABASE_SERVICE_KEY")
-supabase: Client = create_client(url, key)
 
-# --- HARDCODED TEST USER (To simulate a logged-in user) ---
-# In Phase 5 (Auth), we will replace this with the real user's ID
-TEST_USER_ID = "00000000-0000-0000-0000-000000000000" 
+if not url or not key:
+    raise ValueError("Supabase credentials missing. Check .env file.")
+
+supabase: Client = create_client(url, key)
 
 # --- Notebook Operations ---
 
-def get_all_notebooks():
-    # Select all notebooks for our test user, ordered by newest
+def get_all_notebooks(user_id: str):
+    # Select all notebooks for the SPECIFIC user, ordered by newest
     response = supabase.table("notebooks") \
         .select("*") \
-        .eq("user_id", TEST_USER_ID) \
+        .eq("user_id", user_id) \
         .order("created_at", desc=True) \
         .execute()
     
     notebooks = response.data
     
-    # We need to manually fetch the file lists for the UI to show the count
-    # (In a production app, we'd use a SQL join, but this is simpler for now)
+    # Manually fetch the file lists for the UI to show the count
     for nb in notebooks:
         files_response = supabase.table("files") \
             .select("name") \
@@ -37,25 +36,27 @@ def get_all_notebooks():
         
     return notebooks
 
-def create_notebook(name: str):
+def create_notebook(name: str, user_id: str):
     response = supabase.table("notebooks").insert({
         "name": name,
-        "user_id": TEST_USER_ID
+        "user_id": user_id  # Use real user ID
     }).execute()
     
     # Supabase returns the created object
     new_notebook = response.data[0]
-    new_notebook['files'] = [] # Initialize empty list for frontend compatibility
+    new_notebook['files'] = [] 
     return new_notebook
 
-def get_notebook(notebook_id: str):
-    # Get Metadata
+def get_notebook(notebook_id: str, user_id: str):
+    # Get Metadata - WITH SECURITY CHECK
     nb_response = supabase.table("notebooks") \
         .select("*") \
         .eq("id", notebook_id) \
+        .eq("user_id", user_id) \
         .execute()
         
     if not nb_response.data:
+        # If notebook doesn't exist OR doesn't belong to user, return None
         return None
         
     notebook = nb_response.data[0]
@@ -77,22 +78,32 @@ def get_notebook(notebook_id: str):
     
     return notebook
 
-def rename_notebook(notebook_id: str, new_name: str):
+def rename_notebook(notebook_id: str, new_name: str, user_id: str):
     response = supabase.table("notebooks") \
         .update({"name": new_name}) \
         .eq("id", notebook_id) \
+        .eq("user_id", user_id) \
         .execute()
     return response.data[0] if response.data else None
 
-def delete_notebook(notebook_id: str):
-    # Cascade delete in SQL handles files/messages, we just delete the notebook
-    supabase.table("notebooks").delete().eq("id", notebook_id).execute()
+def delete_notebook(notebook_id: str, user_id: str):
+    # Only delete if user owns it
+    supabase.table("notebooks") \
+        .delete() \
+        .eq("id", notebook_id) \
+        .eq("user_id", user_id) \
+        .execute()
     return True
 
 # --- File Operations ---
 
-def add_file_to_notebook(notebook_id: str, filename: str):
-    # Check if exists first to avoid duplicates
+def add_file_to_notebook(notebook_id: str, filename: str, user_id: str):
+    # 1. SECURITY: Verify notebook belongs to user first
+    check = supabase.table("notebooks").select("id").eq("id", notebook_id).eq("user_id", user_id).execute()
+    if not check.data:
+        raise Exception("Access Denied: Notebook does not belong to user")
+
+    # 2. Check if file exists to avoid duplicates
     existing = supabase.table("files") \
         .select("*") \
         .eq("notebook_id", notebook_id) \
@@ -105,7 +116,13 @@ def add_file_to_notebook(notebook_id: str, filename: str):
             "name": filename
         }).execute()
 
-def delete_file_from_notebook(notebook_id: str, filename: str):
+def delete_file_from_notebook(notebook_id: str, filename: str, user_id: str):
+    # 1. SECURITY: Verify notebook belongs to user
+    check = supabase.table("notebooks").select("id").eq("id", notebook_id).eq("user_id", user_id).execute()
+    if not check.data:
+        raise Exception("Access Denied")
+
+    # 2. Delete
     supabase.table("files") \
         .delete() \
         .eq("notebook_id", notebook_id) \
@@ -114,7 +131,13 @@ def delete_file_from_notebook(notebook_id: str, filename: str):
 
 # --- Chat Operations ---
 
-def add_message_to_notebook(notebook_id: str, role: str, content: str, sources: list = None):
+def add_message_to_notebook(notebook_id: str, role: str, content: str, sources: list = None, user_id: str = None):
+    # 1. SECURITY: Verify notebook belongs to user (if user_id provided)
+    if user_id:
+        check = supabase.table("notebooks").select("id").eq("id", notebook_id).eq("user_id", user_id).execute()
+        if not check.data:
+            raise Exception("Access Denied")
+
     supabase.table("messages").insert({
         "notebook_id": notebook_id,
         "role": role,
