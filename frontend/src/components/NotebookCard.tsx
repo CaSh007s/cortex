@@ -35,6 +35,7 @@ interface NotebookCardProps {
 }
 
 export function NotebookCard({ notebook, onUpdate }: NotebookCardProps) {
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [newName, setNewName] = useState(notebook.name);
@@ -43,7 +44,7 @@ export function NotebookCard({ notebook, onUpdate }: NotebookCardProps) {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await fetch(`http://127.0.0.1:8000/api/notebooks/${notebook.id}`, {
+      await fetch(`${API_BASE}/api/notebooks/${notebook.id}`, {
         method: "DELETE",
       });
       onUpdate();
@@ -62,7 +63,7 @@ export function NotebookCard({ notebook, onUpdate }: NotebookCardProps) {
     }
     
     try {
-      await fetch(`http://127.0.0.1:8000/api/notebooks/${notebook.id}`, {
+      await fetch(`${API_BASE}/api/notebooks/${notebook.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newName }),

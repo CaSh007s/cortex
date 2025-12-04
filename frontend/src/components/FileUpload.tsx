@@ -12,6 +12,7 @@ interface FileUploadProps {
 }
 
 export function FileUpload({ notebookId, onUploadComplete }: FileUploadProps) {
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
@@ -33,7 +34,7 @@ export function FileUpload({ notebookId, onUploadComplete }: FileUploadProps) {
     formData.append("notebookId", notebookId);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/upload", {
+      const response = await fetch(`${API_BASE}/api/upload`, {
         method: "POST",
         body: formData,
       });

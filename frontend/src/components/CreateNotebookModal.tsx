@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from "framer-motion";
 type InputMode = "select" | "upload" | "url" | "paste";
 
 export function CreateNotebookModal({ children }: { children: React.ReactNode }) {
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,7 +41,7 @@ export function CreateNotebookModal({ children }: { children: React.ReactNode })
 
     try {
       // 1. Create Notebook
-      const res = await fetch("http://127.0.0.1:8000/api/notebooks", {
+      const res = await fetch(`${API_BASE}/api/notebooks`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
@@ -53,7 +54,7 @@ export function CreateNotebookModal({ children }: { children: React.ReactNode })
         const formData = new FormData();
         formData.append("file", selectedFile);
         formData.append("notebookId", notebook.id);
-        await fetch("http://127.0.0.1:8000/api/upload", { method: "POST", body: formData });
+        await fetch(`${API_BASE}/api/upload`, { method: "POST", body: formData });
       
       } else if (mode === "paste" && text.trim()) {
         const blob = new Blob([text], { type: "text/plain" });
@@ -61,10 +62,10 @@ export function CreateNotebookModal({ children }: { children: React.ReactNode })
         const formData = new FormData();
         formData.append("file", file);
         formData.append("notebookId", notebook.id);
-        await fetch("http://127.0.0.1:8000/api/upload", { method: "POST", body: formData });
+        await fetch(`${API_BASE}/api/upload`, { method: "POST", body: formData });
 
       } else if (mode === "url" && url.trim()) {
-        await fetch("http://127.0.0.1:8000/api/ingest-url", {
+        await fetch(`${API_BASE}/api/ingest-url`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ url, notebookId: notebook.id })

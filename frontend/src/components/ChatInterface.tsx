@@ -22,6 +22,7 @@ interface ChatInterfaceProps {
 }
 
 export function ChatInterface({ notebookId }: ChatInterfaceProps) {
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
   // 1. Initialize with empty array (we will load history next)
   const [messages, setMessages] = useState<Message[]>([
   {
@@ -37,7 +38,7 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
   useEffect(() => {
   const fetchHistory = async () => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/notebooks/${notebookId}`);
+      const res = await fetch(`${API_BASE}/api/notebooks/${notebookId}`);
       if (res.ok) {
         const data = await res.json();
         // Only update if there is actual history
@@ -71,7 +72,7 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
 
     try {
       // Send notebookId to the backend so it knows where to save this chat
-      const response = await fetch("http://127.0.0.1:8000/api/chat", {
+      const response = await fetch(`${API_BASE}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 

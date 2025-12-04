@@ -12,6 +12,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ notebookId }: SidebarProps) {
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
   const [files, setFiles] = useState<string[]>([]);
   const [deleting, setDeleting] = useState<string | null>(null); // Track deletion state
 
@@ -19,7 +20,7 @@ export function Sidebar({ notebookId }: SidebarProps) {
   useEffect(() => {
     const fetchFiles = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/notebooks/${notebookId}`);
+        const res = await fetch(`${API_BASE}/api/notebooks/${notebookId}`);
         if (res.ok) {
           const data = await res.json();
           setFiles(data.files || []);
@@ -33,7 +34,7 @@ export function Sidebar({ notebookId }: SidebarProps) {
 
   // 2. Refresh Helper
   const handleUploadComplete = () => {
-     fetch(`http://127.0.0.1:8000/api/notebooks/${notebookId}`)
+     fetch(`${API_BASE}/api/notebooks/${notebookId}`)
       .then(res => res.json())
       .then(data => setFiles(data.files || []));
   };
@@ -44,7 +45,7 @@ export function Sidebar({ notebookId }: SidebarProps) {
     
     setDeleting(filename);
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/notebooks/${notebookId}/files/${filename}`, {
+      const res = await fetch(`${API_BASE}/api/notebooks/${notebookId}/files/${filename}`, {
         method: "DELETE",
       });
       if (res.ok) {

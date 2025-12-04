@@ -15,9 +15,12 @@ type Notebook = {
 export default function Dashboard() {
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
 
+ //Base URL
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+ 
   // Function to refresh list
   const fetchNotebooks = () => {
-    fetch("http://127.0.0.1:8000/api/notebooks")
+    fetch(`${API_BASE}/api/notebooks`)
       .then((res) => res.json())
       .then((data) => setNotebooks(data))
       .catch((err) => console.error(err));
