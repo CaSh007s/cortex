@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { secureFetch } from "@/lib/secureFetch";
 
 interface Notebook {
   id: string;
@@ -44,7 +45,7 @@ export function NotebookCard({ notebook, onUpdate }: NotebookCardProps) {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await fetch(`${API_BASE}/api/notebooks/${notebook.id}`, {
+      await secureFetch(`${API_BASE}/api/notebooks/${notebook.id}`, {
         method: "DELETE",
       });
       onUpdate();
@@ -63,7 +64,7 @@ export function NotebookCard({ notebook, onUpdate }: NotebookCardProps) {
     }
     
     try {
-      await fetch(`${API_BASE}/api/notebooks/${notebook.id}`, {
+      await secureFetch(`${API_BASE}/api/notebooks/${notebook.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newName }),

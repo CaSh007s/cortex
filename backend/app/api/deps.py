@@ -1,11 +1,20 @@
 import os
+from dotenv import load_dotenv  # <--- 1. Import this
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from supabase import create_client, Client
 
-# Initialize Supabase Client (for verifying tokens)
+# 2. Load environment variables before doing anything else
+load_dotenv()
+
+# Initialize Supabase Client
 url: str = os.environ.get("SUPABASE_URL")
 key: str = os.environ.get("SUPABASE_SERVICE_KEY")
+
+# Safety check (Optional but good for debugging)
+if not url or not key:
+    print("❌ ERROR: SUPABASE_URL or SUPABASE_SERVICE_KEY is missing in backend/.env")
+
 supabase: Client = create_client(url, key)
 
 # The "Bearer" scheme expects a header like: Authorization: Bearer <token>
@@ -28,7 +37,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
                 detail="Invalid authentication credentials",
             )
             
-        # Return the specific User ID (e.g., "550e8400-e29b...")
+        # Return the specific User ID
         return user.user.id
         
     except Exception as e:

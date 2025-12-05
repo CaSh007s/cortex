@@ -12,6 +12,7 @@ import {
   ArrowLeft, Loader2 // <--- ADDED Loader2 HERE
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { secureFetch } from "@/lib/secureFetch";
 
 type InputMode = "select" | "upload" | "url" | "paste";
 
@@ -41,7 +42,7 @@ export function CreateNotebookModal({ children }: { children: React.ReactNode })
 
     try {
       // 1. Create Notebook
-      const res = await fetch(`${API_BASE}/api/notebooks`, {
+      const res = await secureFetch(`${API_BASE}/api/notebooks`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
@@ -54,7 +55,7 @@ export function CreateNotebookModal({ children }: { children: React.ReactNode })
         const formData = new FormData();
         formData.append("file", selectedFile);
         formData.append("notebookId", notebook.id);
-        await fetch(`${API_BASE}/api/upload`, { method: "POST", body: formData });
+        await secureFetch(`${API_BASE}/api/upload`, { method: "POST", body: formData });
       
       } else if (mode === "paste" && text.trim()) {
         const blob = new Blob([text], { type: "text/plain" });
@@ -62,10 +63,10 @@ export function CreateNotebookModal({ children }: { children: React.ReactNode })
         const formData = new FormData();
         formData.append("file", file);
         formData.append("notebookId", notebook.id);
-        await fetch(`${API_BASE}/api/upload`, { method: "POST", body: formData });
+        await secureFetch(`${API_BASE}/api/upload`, { method: "POST", body: formData });
 
       } else if (mode === "url" && url.trim()) {
-        await fetch(`${API_BASE}/api/ingest-url`, {
+        await secureFetch(`${API_BASE}/api/ingest-url`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ url, notebookId: notebook.id })

@@ -16,6 +16,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import { secureFetch } from "@/lib/secureFetch";
 
 interface ChatInterfaceProps {
   notebookId: string;
@@ -38,7 +39,7 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
   useEffect(() => {
   const fetchHistory = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/notebooks/${notebookId}`);
+      const res = await secureFetch(`${API_BASE}/api/notebooks/${notebookId}`);
       if (res.ok) {
         const data = await res.json();
         // Only update if there is actual history
@@ -72,7 +73,7 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
 
     try {
       // Send notebookId to the backend so it knows where to save this chat
-      const response = await fetch(`${API_BASE}/api/chat`, {
+      const response = await secureFetch(`${API_BASE}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 

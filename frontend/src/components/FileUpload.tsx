@@ -4,6 +4,7 @@ import { useState, ChangeEvent } from "react";
 import { Upload, CheckCircle, AlertCircle, Loader2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { secureFetch } from "@/lib/secureFetch";
 
 // Accept notebookId and a callback
 interface FileUploadProps {
@@ -34,7 +35,7 @@ export function FileUpload({ notebookId, onUploadComplete }: FileUploadProps) {
     formData.append("notebookId", notebookId);
 
     try {
-      const response = await fetch(`${API_BASE}/api/upload`, {
+      const response = await secureFetch(`${API_BASE}/api/upload`, {
         method: "POST",
         body: formData,
       });
