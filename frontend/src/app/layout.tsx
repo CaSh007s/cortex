@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans"; // Ensure you ran 'npm install geist' if this errors
-import "./globals.css";
+import { Inter } from "next/font/google";
+import "./globals.css"; // Make sure you have this CSS file
 
-export const metadata = {
-  title: 'Cortex | AI Knowledge Base', 
-  description: 'Intelligent RAG-powered document analysis.',
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "Cortex | AI Knowledge Base",
+  description: "Your Second Brain",
 };
 
 export default function RootLayout({
@@ -13,15 +15,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark"> 
-      <body className={`${GeistSans.className} antialiased min-h-screen selection:bg-purple-500/30`}>
-        {/* The Animated Background Layer */}
-        <div className="aurora-bg" />
-        
-        {/* The Content Layer */}
-        <div className="relative z-10">
-          {children}
-        </div>
+    <html lang="en">
+      <body className={inter.className}>
+        {children}
       </body>
     </html>
   );

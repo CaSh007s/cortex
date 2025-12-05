@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Loader2 } from "lucide-react";
+import { AppSidebar } from "@/components/AppSidebar"; // <--- NEW IMPORT
 
 export default function DashboardLayout({
   children,
@@ -16,45 +17,33 @@ export default function DashboardLayout({
   useEffect(() => {
     const checkUser = async () => {
       try {
-        // 1. Ask Supabase if we have a user
         const { data: { session } } = await supabase.auth.getSession();
-
-        if (!session) {
-          // 2. No user? Kick them out!
-          router.replace("/");
-        } else {
-          // 3. User exists? Let them see the page
-          setIsLoading(false);
-        }
+        if (!session) router.replace("/");
+        else setIsLoading(false);
       } catch (error) {
-        console.error("Auth check failed", error);
         router.replace("/");
       }
     };
-
     checkUser();
   }, [router]);
 
-  // 4. Show Loading Screen while checking
   if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-black text-white">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-10 w-10 animate-spin text-purple-500" />
-          <p className="text-slate-400 animate-pulse">Verifying Credentials...</p>
-        </div>
+        <Loader2 className="h-10 w-10 animate-spin text-indigo-500" />
       </div>
     );
   }
 
-  // 5. Render the Dashboard (Sidebar + Page)
   return (
-    <div className="flex h-screen bg-black text-white overflow-hidden">
-      {/* Note: Sidebar is rendered inside page.tsx or here depending on your structure. 
-          If your Sidebar is in page.tsx, this just wraps it. 
-          If you want the Sidebar persistent across dashboard pages, add it here.
-      */}
-      {children}
+    <div className="flex h-screen bg-[#0B0C15] text-white overflow-hidden">
+      {/* 1. The Persistent Sidebar */}
+      <AppSidebar />
+      
+      {/* 2. The Main Content Area */}
+      <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-[#0B0C15]">
+        {children}
+      </main>
     </div>
   );
 }

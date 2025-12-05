@@ -9,14 +9,21 @@ import { Label } from "@/components/ui/label";
 import { 
   Plus, Sparkles, ArrowRight, Upload, FileText, 
   Globe, Link as LinkIcon, HardDrive, CheckCircle, 
-  ArrowLeft, Loader2 // <--- ADDED Loader2 HERE
+  ArrowLeft, Loader2 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { secureFetch } from "@/lib/secureFetch";
 
 type InputMode = "select" | "upload" | "url" | "paste";
 
-export function CreateNotebookModal({ children }: { children: React.ReactNode }) {
+// 1. Define Props Interface (Fixes the AppSidebar Error)
+interface CreateNotebookModalProps {
+  children: React.ReactNode;
+  onSuccess?: () => void;
+}
+
+// 2. Add onSuccess to the arguments
+export function CreateNotebookModal({ children, onSuccess }: CreateNotebookModalProps) {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -73,8 +80,20 @@ export function CreateNotebookModal({ children }: { children: React.ReactNode })
         });
       }
       
+      // 3. Cleanup
       setOpen(false);
-      router.push(`/notebook/${notebook.id}`);
+      setName("");
+      setSelectedFile(null);
+      setUrl("");
+      setText("");
+
+      // 4. Handle Success (Fixes Sidebar refresh)
+      if (onSuccess) {
+        onSuccess(); // If Sidebar passed a reload function, use it
+      } else {
+        // Default behavior: Go to the new notebook
+        router.push(`/dashboard/notebook/${notebook.id}`);
+      }
       
     } catch (error) {
       console.error(error);

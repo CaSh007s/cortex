@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
-import { Message } from "@/types";
+// Ensure you have this type defined, or use the local interface below
+// import { Message } from "@/types"; 
 import { Typewriter } from "@/components/Typewriter";
 import { ThinkingWave } from "@/components/ThinkingWave";
 import {
@@ -22,41 +23,47 @@ interface ChatInterfaceProps {
   notebookId: string;
 }
 
+// Local interface definition to handle flexible source types
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+  // Sources can be strings OR objects depending on the RAG pipeline
+  sources?: (string | { page: number; source: string })[]; 
+}
+
 export function ChatInterface({ notebookId }: ChatInterfaceProps) {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-  // 1. Initialize with empty array (we will load history next)
+  
   const [messages, setMessages] = useState<Message[]>([
-  {
-    role: "assistant",
-    content: "System Online. Ready to analyze your documents.",
-  },
-]);
+    {
+      role: "assistant",
+      content: "System Online. Ready to analyze your documents.",
+    },
+  ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // 2. NEW: Load Chat History from Backend on Mount
+  // 1. Load Chat History
   useEffect(() => {
-  const fetchHistory = async () => {
-    try {
-      const res = await secureFetch(`${API_BASE}/api/notebooks/${notebookId}`);
-      if (res.ok) {
-        const data = await res.json();
-        // Only update if there is actual history
-        if (data.messages && data.messages.length > 0) {
-          setMessages(data.messages);
-        } 
-        // If no history, we keep the default "System Online" message we set above.
+    const fetchHistory = async () => {
+      try {
+        const res = await secureFetch(`${API_BASE}/api/notebooks/${notebookId}`);
+        if (res.ok) {
+          const data = await res.json();
+          // Check if messages exists AND is an array
+          if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+            setMessages(data.messages);
+          } 
+        }
+      } catch (err) {
+        console.error("Failed to load history", err);
       }
-    } catch (err) {
-      console.error("Failed to load history", err);
-    }
-  };
+    };
+    fetchHistory();
+  }, [notebookId, API_BASE]);
 
-  fetchHistory();
-}, [notebookId]);
-
-  // 3. Auto-scroll to bottom when messages change
+  // 2. Auto-scroll
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
@@ -72,7 +79,6 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
     setLoading(true);
 
     try {
-      // Send notebookId to the backend so it knows where to save this chat
       const response = await secureFetch(`${API_BASE}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -85,10 +91,11 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
       if (!response.ok) throw new Error("Network response was not ok");
 
       const data = await response.json();
+      
       const aiMessage: Message = {
         role: "assistant",
         content: data.answer,
-        sources: data.sources,
+        sources: data.sources, // Backend returns this
       };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
@@ -152,7 +159,7 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
                         : "bg-white/5 border border-white/10 text-slate-100"
                     }`}
                   >
-                    {/* Content Logic: Stream if it's the last message & from AI */}
+                    {/* Content Logic */}
                     {msg.role === "assistant" && index === messages.length - 1 && loading === false ? (
                       <Typewriter content={msg.content} speed={15} />
                     ) : (
@@ -161,35 +168,41 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
                       </div>
                     )}
 
-                    {/* Citations (Holographic Cards) */}
-                    {msg.sources && msg.sources.length > 0 && (
+                    {/* Citations (Holographic Cards) - SAFE GUARD ADDED HERE */}
+                    {Array.isArray(msg.sources) && msg.sources.length > 0 && (
                       <div className="mt-4 flex flex-wrap gap-2 pt-2 border-t border-white/5">
-                        {msg.sources.map((source, idx) => (
-                          <HoverCard key={idx}>
-                            <HoverCardTrigger asChild>
-                              <button className="flex items-center gap-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 hover:border-indigo-500/40 px-2.5 py-1 rounded-full text-xs font-medium text-indigo-300 transition-all group">
-                                <Sparkles className="w-3 h-3 text-indigo-400 group-hover:text-indigo-300" />
-                                <span>Pg {source.page}</span>
-                              </button>
-                            </HoverCardTrigger>
-                            <HoverCardContent className="w-80 p-0 bg-black/90 border-white/10 backdrop-blur-xl">
-                              <div className="flex flex-col">
-                                <div className="flex items-center gap-2 p-3 border-b border-white/10 bg-white/5">
-                                  <FileText className="w-4 h-4 text-indigo-400" />
-                                  <p className="text-sm font-medium text-slate-200 truncate">
-                                    {source.source}
-                                  </p>
+                        {msg.sources.map((source, idx) => {
+                          // Handle flexible source types (String vs Object)
+                          const pageNum = typeof source === 'object' && source.page ? source.page : '1';
+                          const fileName = typeof source === 'object' && source.source ? source.source : String(source);
+                          
+                          return (
+                            <HoverCard key={idx}>
+                              <HoverCardTrigger asChild>
+                                <button className="flex items-center gap-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 hover:border-indigo-500/40 px-2.5 py-1 rounded-full text-xs font-medium text-indigo-300 transition-all group">
+                                  <Sparkles className="w-3 h-3 text-indigo-400 group-hover:text-indigo-300" />
+                                  <span>Pg {pageNum}</span>
+                                </button>
+                              </HoverCardTrigger>
+                              <HoverCardContent className="w-80 p-0 bg-black/90 border-white/10 backdrop-blur-xl">
+                                <div className="flex flex-col">
+                                  <div className="flex items-center gap-2 p-3 border-b border-white/10 bg-white/5">
+                                    <FileText className="w-4 h-4 text-indigo-400" />
+                                    <p className="text-sm font-medium text-slate-200 truncate">
+                                      {fileName}
+                                    </p>
+                                  </div>
+                                  <div className="p-3">
+                                    <p className="text-xs text-slate-400 leading-relaxed">
+                                      Referenced from Page {pageNum}. 
+                                      This segment was identified as highly relevant to your query.
+                                    </p>
+                                  </div>
                                 </div>
-                                <div className="p-3">
-                                  <p className="text-xs text-slate-400 leading-relaxed">
-                                    Referenced from Page {source.page}. 
-                                    This segment was identified as highly relevant to your query.
-                                  </p>
-                                </div>
-                              </div>
-                            </HoverCardContent>
-                          </HoverCard>
-                        ))}
+                              </HoverCardContent>
+                            </HoverCard>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -206,7 +219,7 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
               ))}
             </AnimatePresence>
 
-            {/* Loading State (Thinking Wave) */}
+            {/* Loading State */}
             {loading && (
                <motion.div 
                  initial={{ opacity: 0 }} 
@@ -229,7 +242,7 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
         </ScrollArea>
       </div>
 
-      {/* Input Area (Glowing) */}
+      {/* Input Area */}
       <div className="p-4 border-t border-white/10 bg-black/20">
         <div className="relative flex items-center">
             <Input
