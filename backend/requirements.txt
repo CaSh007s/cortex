@@ -15,3 +15,5 @@ langchain-text-splitters==0.2.4
 langchain-pinecone<0.2.0
 langchain-google-genai==1.0.10
 google-generativeai
+google-api-python-client>=2.0.0
+google-auth>=2.0.0

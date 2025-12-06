@@ -1,12 +1,16 @@
 import os
 from typing import List
 import tempfile
+import io
 from langchain_community.document_loaders import PyPDFLoader, WebBaseLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone, ServerlessSpec
 from dotenv import load_dotenv
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseDownload
 
 load_dotenv()
 
@@ -75,13 +79,62 @@ class IngestionService:
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
             }
         )
-        
         docs = loader.load()
         chunks = self._get_splitter().split_documents(docs)
         self._index_documents(chunks, notebook_id)
         
         # Return title, or fallback to URL if title is missing
         return docs[0].metadata.get('title', url)
+
+    #MODE 4: GOOGLE DRIVE FILE ---
+    def process_drive_file(self, file_id: str, access_token: str, notebook_id: str):
+        """
+        Download a file from Google Drive and ingest it.
+        """
+        try:
+            # 1. Connect to Drive using the user's token
+            creds = Credentials(token=access_token)
+            service = build('drive', 'v3', credentials=creds)
+
+            # 2. Get File Metadata (Name)
+            file_metadata = service.files().get(fileId=file_id).execute()
+            filename = file_metadata.get('name', 'drive_file.pdf')
+
+            # 3. Download File Content
+            request = service.files().get_media(fileId=file_id)
+            file_stream = io.BytesIO()
+            downloader = MediaIoBaseDownload(file_stream, request)
+            
+            done = False
+            while done is False:
+                status, done = downloader.next_chunk()
+
+            # Reset stream pointer to beginning
+            file_stream.seek(0)
+
+            # 4. Save to Temp File (Standardizing for PyPDFLoader)
+            # (We reuse the existing PDF loader logic by saving it temporarily)
+            temp_filename = f"temp_drive_{filename}"
+            with open(temp_filename, "wb") as f:
+                f.write(file_stream.read())
+
+            # 5. Process
+            try:
+                if filename.endswith(".pdf"):
+                    self.process_pdf(temp_filename, notebook_id)
+                else:
+                    # Fallback for text/docs
+                    self.process_text_file(temp_filename, notebook_id)
+                
+                return filename # Return name for DB
+            finally:
+                # Cleanup
+                if os.path.exists(temp_filename):
+                    os.remove(temp_filename)
+
+        except Exception as e:
+            print(f"Drive Ingestion Error: {e}")
+            raise e
 
     # Delete Functionality
     def delete_notebook_content(self, notebook_id: str):

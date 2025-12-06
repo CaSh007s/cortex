@@ -11,18 +11,15 @@ import {
   Globe, Link as LinkIcon, HardDrive, CheckCircle, 
   ArrowLeft, Loader2 
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { secureFetch } from "@/lib/secureFetch";
 
 type InputMode = "select" | "upload" | "url" | "paste";
 
-// 1. Define Props Interface (Fixes the AppSidebar Error)
 interface CreateNotebookModalProps {
   children: React.ReactNode;
   onSuccess?: () => void;
 }
 
-// 2. Add onSuccess to the arguments
 export function CreateNotebookModal({ children, onSuccess }: CreateNotebookModalProps) {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
   const [open, setOpen] = useState(false);
@@ -87,16 +84,12 @@ export function CreateNotebookModal({ children, onSuccess }: CreateNotebookModal
       setUrl("");
       setText("");
 
-      // 4. Handle Success (Fixes Sidebar refresh)
-      if (onSuccess) {
-        onSuccess(); // If Sidebar passed a reload function, use it
-      } else {
-        // Default behavior: Go to the new notebook
-        router.push(`/dashboard/notebook/${notebook.id}`);
-      }
+      if (onSuccess) onSuccess();
+      else router.push(`/dashboard/notebook/${notebook.id}`);
       
     } catch (error) {
       console.error(error);
+      alert("Error creating notebook.");
     } finally {
       setLoading(false);
     }
@@ -130,7 +123,7 @@ export function CreateNotebookModal({ children, onSuccess }: CreateNotebookModal
             <Label className="text-slate-400 font-medium">Add Source</Label>
             
             {mode === "select" && (
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <div className="relative group flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all cursor-pointer">
                         <input type="file" accept=".pdf" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
                         <Upload className="w-6 h-6 text-indigo-400" />
@@ -140,6 +133,18 @@ export function CreateNotebookModal({ children, onSuccess }: CreateNotebookModal
                     <button onClick={() => setMode("url")} className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all">
                         <Globe className="w-6 h-6 text-emerald-400" />
                         <span className="text-xs text-slate-300">Website</span>
+                    </button>
+
+                    {/* Google Drive - COMING SOON */}
+                    <button 
+                        disabled 
+                        className="relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-white/5 bg-white/5 opacity-50 cursor-not-allowed group overflow-hidden"
+                    >
+                        <div className="absolute top-2 right-2 bg-indigo-500/20 text-indigo-300 text-[9px] font-bold px-1.5 py-0.5 rounded border border-indigo-500/30">
+                            SOON
+                        </div>
+                        <HardDrive className="w-6 h-6 text-slate-500" />
+                        <span className="text-xs text-slate-500">Google Drive</span>
                     </button>
 
                     <button onClick={() => setMode("paste")} className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all">

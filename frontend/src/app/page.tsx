@@ -4,12 +4,11 @@ import { useState } from "react";
 import Spline from '@splinetool/react-spline';
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabaseClient";
-import { ArrowRight, Brain, Zap, Shield, Cpu } from "lucide-react";
+import { ArrowRight, Brain, Zap, Shield, Database, Search, FileText } from "lucide-react";
 
 export default function LandingPage() {
   const [loading, setLoading] = useState(false);
 
-  // --- Login Logic ---
   const handleLogin = async () => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
@@ -23,29 +22,31 @@ export default function LandingPage() {
   };
 
   return (
-    <main className="relative bg-black min-h-screen text-white overflow-x-hidden">
+    // We force dark mode on the landing page (bg-black) to match the 3D scene aesthetics
+    <main className="relative bg-black min-h-screen text-white overflow-x-hidden selection:bg-indigo-500/30">
       
-      {/* 1. THE 3D BACKGROUND (Fixed) */}
+      {/* 1. BACKGROUND ENGINE (Fixed) */}
       <div className="fixed inset-0 z-0">
         <Spline scene="https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black pointer-events-none" />
       </div>
 
-      {/* 2. THE SCROLLABLE CONTENT (Foreground) */}
+      {/* 2. FOREGROUND CONTENT */}
       <div className="relative z-10">
         
-        {/* --- Section 1: The Hook --- */}
+        {/* HERO SECTION */}
         <section className="h-screen flex flex-col items-center justify-center p-8">
           <motion.div 
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1 }}
-            className="text-center"
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="text-center relative"
           >
-            <h1 className="text-7xl md:text-9xl font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white to-white/40 mb-6">
+            <div className="absolute -inset-10 bg-indigo-500/20 blur-[100px] rounded-full pointer-events-none" />
+            <h1 className="text-7xl md:text-[10rem] font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/10 mb-6 drop-shadow-2xl">
               CORTEX
             </h1>
-            <p className="text-xl md:text-2xl text-slate-300 max-w-2xl mx-auto font-light">
+            <p className="text-xl md:text-3xl text-slate-300 max-w-2xl mx-auto font-light tracking-wide">
               Your Second Brain. <br/>
               <span className="text-indigo-400 font-semibold">Infinite Memory. Instant Recall.</span>
             </p>
@@ -53,92 +54,89 @@ export default function LandingPage() {
             <motion.div 
               animate={{ y: [0, 10, 0] }} 
               transition={{ repeat: Infinity, duration: 2 }}
-              className="mt-20 text-slate-500 text-sm"
+              className="mt-32 text-slate-500 text-xs uppercase tracking-[0.2em]"
             >
-              Scroll to explore
+              Scroll to Initialize
             </motion.div>
           </motion.div>
         </section>
 
-        {/* --- Section 2: The Problem --- */}
-        <section className="h-screen flex items-center justify-start p-8 md:p-24 bg-gradient-to-b from-transparent to-black/80">
-          <motion.div 
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ margin: "-200px" }}
-            transition={{ duration: 0.8 }}
-            className="max-w-xl"
-          >
-            <div className="w-12 h-12 bg-indigo-500/20 rounded-xl flex items-center justify-center mb-6">
-              <Brain className="w-6 h-6 text-indigo-400" />
+        {/* THE PIPELINE (How it works) */}
+        <section className="min-h-screen flex flex-col justify-center px-8 md:px-24 bg-gradient-to-b from-transparent via-black/80 to-black">
+          <div className="max-w-5xl mx-auto w-full">
+            <motion.h2 
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                className="text-4xl md:text-6xl font-bold mb-20 text-center"
+            >
+                How Cortex <span className="text-indigo-500">Thinks</span>
+            </motion.h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+                {/* Connecting Line (Desktop) */}
+                <div className="hidden md:block absolute top-12 left-0 w-full h-0.5 bg-gradient-to-r from-indigo-500/0 via-indigo-500/50 to-indigo-500/0" />
+
+                <StepCard 
+                    icon={<FileText />}
+                    step="01"
+                    title="Ingest"
+                    desc="Upload PDFs, paste text, or link websites. Cortex fragments your data into semantic vectors."
+                    delay={0.2}
+                />
+                <StepCard 
+                    icon={<Database />}
+                    step="02"
+                    title="Index"
+                    desc="Your knowledge is stored in a high-dimensional vector space, creating a map of meaning."
+                    delay={0.4}
+                />
+                <StepCard 
+                    icon={<Search />}
+                    step="03"
+                    title="Retrieve"
+                    desc="Ask anything. Cortex finds the exact paragraph and generates a cited answer instantly."
+                    delay={0.6}
+                />
             </div>
-            <h2 className="text-5xl font-bold mb-6">Drowning in Data?</h2>
-            <p className="text-xl text-slate-400 leading-relaxed">
-              PDFs, research papers, documentation. The knowledge you need is buried in files you can&apos;t find. 
-              <br/><br/>
-              Cortex doesn&apos;t just store files. It <span className="text-white font-semibold">understands</span> them.
-            </p>
-          </motion.div>
+          </div>
         </section>
 
-        {/* --- Section 3: The Solution (Right Aligned) --- */}
-        <section className="h-screen flex items-center justify-end p-8 md:p-24 bg-black/80 backdrop-blur-sm">
-          <motion.div 
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ margin: "-200px" }}
-            transition={{ duration: 0.8 }}
-            className="max-w-xl text-right"
-          >
-             <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mb-6 ml-auto">
-              <Zap className="w-6 h-6 text-purple-400" />
-            </div>
-            <h2 className="text-5xl font-bold mb-6">Instant RAG Engine</h2>
-            <p className="text-xl text-slate-400 leading-relaxed">
-              Powered by Vector Search and LLMs. Ask complex questions across hundreds of documents and get cited answers in milliseconds.
-            </p>
-          </motion.div>
+        {/* FEATURES GRID */}
+        <section className="min-h-screen flex items-center justify-center p-8 bg-black">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl w-full">
+            <BentoCard 
+                title="Neural Search" 
+                desc="Forget keywords. Search by concept, idea, or vague memory."
+                icon={<Brain className="w-8 h-8 text-indigo-400" />}
+                colSpan="md:col-span-2"
+            />
+            <BentoCard 
+                title="Total Privacy" 
+                desc="Row-Level Security (RLS) ensures your thoughts remain yours."
+                icon={<Shield className="w-8 h-8 text-emerald-400" />}
+            />
+            <BentoCard 
+                title="Multi-Modal" 
+                desc="PDFs, MD, TXT, and URLs supported."
+                icon={<Zap className="w-8 h-8 text-amber-400" />}
+            />
+          </div>
         </section>
 
-        {/* --- Section 4: The Features (Grid) --- */}
-        <section className="min-h-screen flex flex-col items-center justify-center p-8 bg-black">
-          <motion.div 
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl w-full"
-          >
-            <FeatureCard 
-              icon={<Brain />}
-              title="Neural Search"
-              desc="Forget keywords. Search by concept, idea, or meaning."
-            />
-            <FeatureCard 
-              icon={<Shield />}
-              title="Private & Secure"
-              desc="Your data is encrypted. Row-Level Security ensures only you see your thoughts."
-            />
-            <FeatureCard 
-              icon={<Cpu />}
-              title="Multi-Modal"
-              desc="Ingest PDFs, Websites, and Text. Cortex unifies your knowledge."
-            />
-          </motion.div>
-        </section>
-
-        {/* --- Section 5: The Call to Action --- */}
-        <section className="h-[80vh] flex flex-col items-center justify-center bg-gradient-to-t from-indigo-900/20 to-black text-center p-8">
+        {/* FINAL CTA */}
+        <section className="h-[80vh] flex flex-col items-center justify-center bg-gradient-to-t from-indigo-900/40 to-black text-center p-8">
            <motion.div
              initial={{ scale: 0.9, opacity: 0 }}
              whileInView={{ scale: 1, opacity: 1 }}
              transition={{ duration: 0.5 }}
+             className="relative z-10"
            >
-             <h2 className="text-6xl font-bold mb-8">Ready to upgrade your mind?</h2>
+             <h2 className="text-5xl md:text-7xl font-bold mb-8 tracking-tight">Ready to upgrade your mind?</h2>
              
              <button 
                 onClick={handleLogin}
                 disabled={loading}
-                className="group relative inline-flex h-16 items-center justify-center overflow-hidden rounded-full bg-white px-10 font-medium text-black transition-all duration-300 hover:bg-slate-200 hover:w-64"
+                className="group relative inline-flex h-16 items-center justify-center overflow-hidden rounded-full bg-white px-12 font-medium text-black transition-all duration-300 hover:bg-slate-200 hover:scale-105 hover:w-80 shadow-[0_0_40px_rgba(255,255,255,0.3)]"
              >
                 <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-100%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(100%)]">
                   <div className="relative h-full w-8 bg-white/20" />
@@ -153,7 +151,7 @@ export default function LandingPage() {
                 )}
              </button>
              
-             <p className="mt-6 text-slate-500 text-sm">Powered by Gemini & Supabase</p>
+             <p className="mt-8 text-slate-500 text-sm">Powered by Gemini 1.5 & Supabase Vector</p>
            </motion.div>
         </section>
         
@@ -162,13 +160,34 @@ export default function LandingPage() {
   );
 }
 
-// Helper Component for Features
-function FeatureCard({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) {
+// --- Components (Fixed Types) ---
+
+function StepCard({ icon, step, title, desc, delay }: { icon: React.ReactNode, step: string, title: string, desc: string, delay: number }) {
     return (
-        <div className="p-8 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-            <div className="mb-4 text-indigo-400">{icon}</div>
-            <h3 className="text-xl font-bold mb-2">{title}</h3>
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay, duration: 0.5 }}
+            className="relative p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md"
+        >
+            <div className="text-xs font-mono text-indigo-400 mb-4">STEP {step}</div>
+            <div className="mb-4 text-white/80">{icon}</div>
+            <h3 className="text-2xl font-bold mb-3">{title}</h3>
+            <p className="text-slate-400 leading-relaxed">{desc}</p>
+        </motion.div>
+    )
+}
+
+function BentoCard({ title, desc, icon, colSpan = "" }: { title: string, desc: string, icon: React.ReactNode, colSpan?: string }) {
+    return (
+        <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            className={`p-8 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors ${colSpan}`}
+        >
+            <div className="mb-4">{icon}</div>
+            <h3 className="text-2xl font-bold mb-2">{title}</h3>
             <p className="text-slate-400">{desc}</p>
-        </div>
+        </motion.div>
     )
 }

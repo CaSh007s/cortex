@@ -8,8 +8,6 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
-// Ensure you have this type defined, or use the local interface below
-// import { Message } from "@/types"; 
 import { Typewriter } from "@/components/Typewriter";
 import { ThinkingWave } from "@/components/ThinkingWave";
 import {
@@ -23,11 +21,9 @@ interface ChatInterfaceProps {
   notebookId: string;
 }
 
-// Local interface definition to handle flexible source types
 interface Message {
   role: "user" | "assistant";
   content: string;
-  // Sources can be strings OR objects depending on the RAG pipeline
   sources?: (string | { page: number; source: string })[]; 
 }
 
@@ -51,7 +47,6 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
         const res = await secureFetch(`${API_BASE}/api/notebooks/${notebookId}`);
         if (res.ok) {
           const data = await res.json();
-          // Check if messages exists AND is an array
           if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
             setMessages(data.messages);
           } 
@@ -70,13 +65,14 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
     }
   }, [messages, loading]);
 
+  // 3. Handle Send (Standard Fetch + Typewriter Effect)
   const handleSend = async () => {
     if (!input.trim()) return;
 
     const userMessage: Message = { role: "user", content: input };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
-    setLoading(true);
+    setLoading(true); // Show "Thinking..."
 
     try {
       const response = await secureFetch(`${API_BASE}/api/chat`, {
@@ -95,17 +91,18 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
       const aiMessage: Message = {
         role: "assistant",
         content: data.answer,
-        sources: data.sources, // Backend returns this
+        sources: data.sources,
       };
       setMessages((prev) => [...prev, aiMessage]);
+      
     } catch (error) {
       console.error(error);
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Error connecting to the neural core." },
+        { role: "assistant", content: "Error: Could not reach the neural core." },
       ]);
     } finally {
-      setLoading(false);
+      setLoading(false); // Trigger Typewriter
     }
   };
 
@@ -159,8 +156,9 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
                         : "bg-white/5 border border-white/10 text-slate-100"
                     }`}
                   >
-                    {/* Content Logic */}
-                    {msg.role === "assistant" && index === messages.length - 1 && loading === false ? (
+                    {/* Content Logic: RESTORED TYPEWRITER */}
+                    {msg.role === "assistant" && index === messages.length - 1 && !loading ? (
+                      // Only use typewriter for the very last message when loading finishes
                       <Typewriter content={msg.content} speed={15} />
                     ) : (
                       <div className="prose prose-invert max-w-none text-sm">
@@ -168,11 +166,10 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
                       </div>
                     )}
 
-                    {/* Citations (Holographic Cards) - SAFE GUARD ADDED HERE */}
+                    {/* Citations (Holographic Cards) */}
                     {Array.isArray(msg.sources) && msg.sources.length > 0 && (
                       <div className="mt-4 flex flex-wrap gap-2 pt-2 border-t border-white/5">
                         {msg.sources.map((source, idx) => {
-                          // Handle flexible source types (String vs Object)
                           const pageNum = typeof source === 'object' && source.page ? source.page : '1';
                           const fileName = typeof source === 'object' && source.source ? source.source : String(source);
                           
@@ -219,7 +216,7 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
               ))}
             </AnimatePresence>
 
-            {/* Loading State */}
+            {/* Loading State - Thinking Wave */}
             {loading && (
                <motion.div 
                  initial={{ opacity: 0 }} 
@@ -233,7 +230,7 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
                   </Avatar>
                   <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3">
                     <ThinkingWave />
-                    <span className="text-xs text-slate-400 animate-pulse">Analyzing context...</span>
+                    <span className="text-xs text-slate-400 animate-pulse">Thinking...</span>
                   </div>
                </motion.div>
             )}

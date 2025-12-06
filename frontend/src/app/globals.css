@@ -4,17 +4,17 @@
 
 @layer base {
   :root {
-    /* "Deep Space" Palette */
-    --background: 0 0% 4%;        /* #0a0a0a */
-    --foreground: 0 0% 98%;       /* #fafafa */
+    /* DEFAULT: "Deep Space" (Dark Mode) */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
     
-    --card: 0 0% 4%;
+    --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
     
-    --popover: 0 0% 4%;
+    --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
     
-    --primary: 252 59% 48%;       /* #5b21b6 (Deep Violet) */
+    --primary: 252 59% 48%; /* Deep Violet */
     --primary-foreground: 0 0% 98%;
     
     --secondary: 240 3.7% 15.9%;
@@ -33,7 +33,38 @@
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
     
-    --radius: 0.75rem; /* Soft corners */
+    --radius: 0.75rem;
+  }
+
+  /* "Nebula" (Light Mode) Override */
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    
+    --primary: 252 59% 55%; /* Slightly brighter Violet for light mode */
+    --primary-foreground: 0 0% 98%;
+    
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
   }
 }
 
@@ -42,64 +73,29 @@
     border-color: hsl(var(--border));
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-300 ease-in-out;
   }
 }
 
-/* --- The Glass Engine --- */
-
-/* 1. The Moving Aurora Background */
-@keyframes aurora {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.aurora-bg {
-  background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000000 100%);
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: -1;
-}
-
-/* 2. The Glass Panel Effect (We will use this on the Chat Card) */
+/* Glass & Utils */
 .glass {
-  background: rgba(25, 25, 25, 0.4); /* Semi-transparent black */
-  backdrop-filter: blur(12px);       /* Frost effect */
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08); /* Subtle rim light */
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* 3. Hide Scrollbar but keep functionality */
+/* In Light mode, make glass darker */
+.light .glass {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
-
-/* Animated Gradient Border */
-@property --angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
-
-@keyframes rotate-gradient {
-  to {
-    --angle: 360deg;
-  }
-}
-
-.gradient-border {
-  position: relative;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.9)) padding-box,
-              conic-gradient(from var(--angle), #3b82f6, #8b5cf6, #3b82f6) border-box;
-  border: 1px solid transparent;
-  animation: rotate-gradient 6s linear infinite;
 }

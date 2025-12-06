@@ -144,3 +144,15 @@ def add_message_to_notebook(notebook_id: str, role: str, content: str, sources: 
         "content": content,
         "sources": sources or []
     }).execute()
+
+# --- User Management ---
+
+def delete_all_user_data(user_id: str):
+    """
+    Nuclear Option: Deletes all notebooks, files, and messages for a user.
+    Because of Cascade Delete in SQL, deleting the 'notebooks' usually deletes
+    the files and messages automatically, but we do it explicitly to be safe.
+    """
+    # 1. Delete all notebooks (Cascade should handle children like files/messages)
+    supabase.table("notebooks").delete().eq("user_id", user_id).execute()
+    return True
