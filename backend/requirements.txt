@@ -1,19 +1,18 @@
-fastapi==0.109.2
-uvicorn==0.27.1
-python-multipart==0.0.9
-pypdf==4.0.1
-python-dotenv==1.0.1
-tiktoken==0.6.0
-pinecone-client
+fastapi
+uvicorn
+python-dotenv
+python-multipart
+pypdf
+tiktoken
 beautifulsoup4
 supabase
-# The "Stability Pack" (Compatible with Pinecone v5)
-langchain==0.2.16
-langchain-community==0.2.16
-langchain-core==0.2.38
-langchain-text-splitters==0.2.4
-langchain-pinecone<0.2.0
-langchain-google-genai==1.0.10
-google-generativeai
-google-api-python-client>=2.0.0
-google-auth>=2.0.0
+pinecone
+
+# --- MODERN STACK ---
+langchain-community>=0.3.0
+langchain-core>=0.3.0
+langchain-text-splitters>=0.3.0
+langchain-google-genai>=2.0.0
+langchain-pinecone>=0.2.0
+langsmith>=0.1.0
+google-generativeai>=0.8.3

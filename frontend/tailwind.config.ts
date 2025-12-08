@@ -1,5 +1,5 @@
 import type { Config } from "tailwindcss";
-import tailwindAnimate from "tailwindcss-animate"; // <--- FIXED IMPORT
+import tailwindAnimate from "tailwindcss-animate";
 
 const config = {
   darkMode: ["class"],
@@ -19,6 +19,11 @@ const config = {
       },
     },
     extend: {
+      // 1. NEW FONT CONFIGURATION
+      fontFamily: {
+        sans: ["var(--font-space)", "sans-serif"], // Default font
+        logo: ["var(--font-orbitron)", "sans-serif"], // Special font for "CORTEX"
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -59,6 +64,7 @@ const config = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      // ... keep animations ...
       keyframes: {
         "accordion-down": {
           from: { height: "0" },
@@ -75,7 +81,7 @@ const config = {
       },
     },
   },
-  plugins: [tailwindAnimate], // <--- FIXED USAGE
+  plugins: [tailwindAnimate],
 } satisfies Config;
 
 export default config;
