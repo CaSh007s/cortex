@@ -1,0 +1,7 @@
+# Ignore Test Data & Personal Files
+sample_data/
+synthetic_test_set.csv
+rag_report_card.csv
+test.pdf
+check_models.py
+test_connectivity.py
