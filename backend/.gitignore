@@ -5,3 +5,6 @@ rag_report_card.csv
 test.pdf
 check_models.py
 test_connectivity.py
+
+# Dev Scripts
+scripts/audit_requirements.py

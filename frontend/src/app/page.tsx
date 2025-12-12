@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Spline from '@splinetool/react-spline';
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabaseClient";
 import { ArrowRight, Brain, Zap, Shield, Database, Search, FileText } from "lucide-react";
@@ -22,13 +21,29 @@ export default function LandingPage() {
   };
 
   return (
-    // We force dark mode on the landing page (bg-black) to match the 3D scene aesthetics
     <main className="relative bg-black min-h-screen text-white overflow-x-hidden selection:bg-indigo-500/30">
       
-      {/* 1. BACKGROUND ENGINE (Fixed) */}
-      <div className="fixed inset-0 z-0">
-        <Spline scene="https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black pointer-events-none" />
+      {/* 1. BACKGROUND ENGINE (Updated with Mask Fix) */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        {/* The Mask: 
+            transparent_10% at center -> black_60% at edges.
+            This creates a "hole" in the middle where lines are invisible.
+        */}
+        <div className="absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black_70%)]">
+            
+            {/* Grid Background (Optional subtle texture) */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+
+            {/* Vertical Green Line (The one that was cutting the R) */}
+            <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-gradient-to-b from-emerald-500/0 via-emerald-500/40 to-emerald-500/0" />
+            
+            {/* Diagonal Lines (Perspective) */}
+            <div className="absolute top-1/2 left-1/2 w-[200%] h-px -translate-x-1/2 -translate-y-1/2 bg-indigo-500/30 rotate-45 blur-[1px]" />
+            <div className="absolute top-1/2 left-1/2 w-[200%] h-px -translate-x-1/2 -translate-y-1/2 bg-rose-500/30 -rotate-45 blur-[1px]" />
+        </div>
+
+        {/* Center Glow (Behind Text) */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-indigo-500/10 blur-[120px] rounded-full" />
       </div>
 
       {/* 2. FOREGROUND CONTENT */}
@@ -42,11 +57,13 @@ export default function LandingPage() {
             transition={{ duration: 1, ease: "easeOut" }}
             className="text-center relative"
           >
-            <div className="absolute -inset-10 bg-indigo-500/20 blur-[100px] rounded-full pointer-events-none" />
-            <h1 className="text-7xl md:text-[10rem] font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/10 mb-6 drop-shadow-2xl">
+            {/* Text Glow */}
+            <div className="absolute -inset-10 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none" />
+            
+            <h1 className="text-7xl md:text-[10rem] font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/10 mb-6 drop-shadow-2xl relative z-20">
               CORTEX
             </h1>
-            <p className="text-xl md:text-3xl text-slate-300 max-w-2xl mx-auto font-light tracking-wide">
+            <p className="text-xl md:text-3xl text-slate-300 max-w-2xl mx-auto font-light tracking-wide relative z-20">
               Your Second Brain. <br/>
               <span className="text-indigo-400 font-semibold">Infinite Memory. Instant Recall.</span>
             </p>
@@ -61,7 +78,7 @@ export default function LandingPage() {
           </motion.div>
         </section>
 
-        {/* THE PIPELINE (How it works) */}
+        {/* THE PIPELINE */}
         <section className="min-h-screen flex flex-col justify-center px-8 md:px-24 bg-gradient-to-b from-transparent via-black/80 to-black">
           <div className="max-w-5xl mx-auto w-full">
             <motion.h2 
@@ -73,7 +90,6 @@ export default function LandingPage() {
             </motion.h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-                {/* Connecting Line (Desktop) */}
                 <div className="hidden md:block absolute top-12 left-0 w-full h-0.5 bg-gradient-to-r from-indigo-500/0 via-indigo-500/50 to-indigo-500/0" />
 
                 <StepCard 
@@ -151,7 +167,7 @@ export default function LandingPage() {
                 )}
              </button>
              
-             <p className="mt-8 text-slate-500 text-sm">Powered by Gemini 1.5 & Supabase Vector</p>
+             <p className="mt-8 text-slate-500 text-sm">Powered by Gemini & Supabase Vector</p>
            </motion.div>
         </section>
         
