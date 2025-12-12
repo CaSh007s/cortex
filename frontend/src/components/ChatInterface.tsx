@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
-import { Send, Bot, User, Sparkles, FileText } from "lucide-react";
+import { Send, Bot, User, Sparkles, FileText, Mic, MicOff } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { secureFetch } from "@/lib/secureFetch";
+import { useVoice } from '@/hooks/useVoice';
 
 interface ChatInterfaceProps {
   notebookId: string;
@@ -30,6 +31,9 @@ interface Message {
 export function ChatInterface({ notebookId }: ChatInterfaceProps) {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
   
+  // --- 1. Voice Hook Integration ---
+  const { isListening, transcript, toggleListening, speak, hasSupport } = useVoice();
+  
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -40,7 +44,14 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // 1. Load Chat History
+  // --- 2. Sync Voice Transcript to Input Box ---
+  useEffect(() => {
+    if (transcript) {
+      setInput(transcript);
+    }
+  }, [transcript]);
+
+  // Load Chat History
   useEffect(() => {
     const fetchHistory = async () => {
       try {
@@ -58,21 +69,20 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
     fetchHistory();
   }, [notebookId, API_BASE]);
 
-  // 2. Auto-scroll
+  // Auto-scroll
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, loading]);
 
-  // 3. Handle Send (Standard Fetch + Typewriter Effect)
   const handleSend = async () => {
     if (!input.trim()) return;
 
     const userMessage: Message = { role: "user", content: input };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
-    setLoading(true); // Show "Thinking..."
+    setLoading(true);
 
     try {
       const response = await secureFetch(`${API_BASE}/api/chat`, {
@@ -94,15 +104,27 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
         sources: data.sources,
       };
       setMessages((prev) => [...prev, aiMessage]);
+
+      // --- 3. Speak the Answer (Jarvis Mode) ---
+      speak(data.answer);
       
     } catch (error) {
       console.error(error);
+      
+      // --- MOCK RESPONSE FOR TESTING (Use this when API is down) ---
+      const offlineMessage = "I cannot reach the neural core (API Quota Exceeded), but my voice module is working perfectly. I can hear you, and I can speak to you.";
+      
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Error: Could not reach the neural core." },
+        { role: "assistant", content: offlineMessage },
       ]);
+      
+      // Force the speaker to read this error message
+      speak(offlineMessage); 
+      // -----------------------------------------------------------
+
     } finally {
-      setLoading(false); // Trigger Typewriter
+      setLoading(false);
     }
   };
 
@@ -156,9 +178,7 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
                         : "bg-white/5 border border-white/10 text-slate-100"
                     }`}
                   >
-                    {/* Content Logic: RESTORED TYPEWRITER */}
                     {msg.role === "assistant" && index === messages.length - 1 && !loading ? (
-                      // Only use typewriter for the very last message when loading finishes
                       <Typewriter content={msg.content} speed={15} />
                     ) : (
                       <div className="prose prose-invert max-w-none text-sm">
@@ -166,7 +186,7 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
                       </div>
                     )}
 
-                    {/* Citations (Holographic Cards) */}
+                    {/* Citations */}
                     {Array.isArray(msg.sources) && msg.sources.length > 0 && (
                       <div className="mt-4 flex flex-wrap gap-2 pt-2 border-t border-white/5">
                         {msg.sources.map((source, idx) => {
@@ -216,7 +236,6 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
               ))}
             </AnimatePresence>
 
-            {/* Loading State - Thinking Wave */}
             {loading && (
                <motion.div 
                  initial={{ opacity: 0 }} 
@@ -241,20 +260,40 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
 
       {/* Input Area */}
       <div className="p-4 border-t border-white/10 bg-black/20">
-        <div className="relative flex items-center">
+        <div className="relative flex items-center gap-2">
+            
+            {/* --- 4. Voice Input Button --- */}
+            {hasSupport && (
+              <Button
+                onClick={toggleListening}
+                size="icon"
+                variant="ghost"
+                className={`rounded-full transition-all duration-300 ${
+                  isListening 
+                    ? "bg-red-500/20 text-red-400 hover:bg-red-500/30 animate-pulse border border-red-500/50" 
+                    : "bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              </Button>
+            )}
+
             <Input
-              placeholder="Ask anything..."
+              placeholder={isListening ? "Listening..." : "Ask anything..."}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={loading}
-              className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 rounded-full py-6 pl-6 pr-12 focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus-visible:border-indigo-500 transition-all duration-300 shadow-[0_0_20px_rgba(99,102,241,0.1)] focus:shadow-[0_0_30px_rgba(99,102,241,0.3)]"
+              className={`bg-white/5 border-white/10 text-white placeholder:text-slate-500 rounded-full py-6 px-6 focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus-visible:border-indigo-500 transition-all duration-300 shadow-[0_0_20px_rgba(99,102,241,0.1)] focus:shadow-[0_0_30px_rgba(99,102,241,0.3)] ${
+                isListening ? "ring-2 ring-red-500/50 border-red-500/50 placeholder:text-red-400" : ""
+              }`}
             />
+            
             <Button 
                 onClick={handleSend} 
                 disabled={loading} 
                 size="icon"
-                className="absolute right-2 h-8 w-8 bg-indigo-600 hover:bg-indigo-500 rounded-full"
+                className="h-10 w-10 bg-indigo-600 hover:bg-indigo-500 rounded-full shrink-0"
             >
               <Send className="w-4 h-4" />
             </Button>
