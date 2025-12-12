@@ -94,7 +94,10 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
         }),
       });
 
-      if (!response.ok) throw new Error("Network response was not ok");
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.detail || "Network response was not ok");
+      }
 
       const data = await response.json();
       
@@ -105,24 +108,26 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
       };
       setMessages((prev) => [...prev, aiMessage]);
 
-      // --- 3. Speak the Answer (Jarvis Mode) ---
-      speak(data.answer);
+      // Note: Auto-speak is currently disabled. 
+      // Uncomment the line below to re-enable it.
+      // speak(data.answer); 
       
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
       
-      // --- MOCK RESPONSE FOR TESTING (Use this when API is down) ---
-      const offlineMessage = "I cannot reach the neural core (API Quota Exceeded), but my voice module is working perfectly. I can hear you, and I can speak to you.";
+      let errorMessage = "Something went wrong.";
       
+      // Type Guard: Safely extract the message
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      }
+
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: offlineMessage },
+        { role: "assistant", content: `Error: ${errorMessage}` },
       ]);
-      
-      // Force the speaker to read this error message
-      speak(offlineMessage); 
-      // -----------------------------------------------------------
-
     } finally {
       setLoading(false);
     }
