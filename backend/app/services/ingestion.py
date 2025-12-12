@@ -12,6 +12,9 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 
+# --- NEW: Import Vision Parser ---
+from app.utils.vision_parser import VisionParser
+
 load_dotenv()
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
@@ -25,6 +28,8 @@ class IngestionService:
             model="models/text-embedding-004", 
             google_api_key=GOOGLE_API_KEY
         )
+        # --- NEW: Initialize Vision ---
+        self.vision_parser = VisionParser(google_api_key=GOOGLE_API_KEY)
 
     def _get_splitter(self):
         return RecursiveCharacterTextSplitter(
@@ -52,12 +57,30 @@ class IngestionService:
             namespace=notebook_id
         )
 
-    # PDF
+    # --- UPDATED PDF PROCESSING (Text + Vision) ---
     def process_pdf(self, file_path: str, notebook_id: str):
         print(f"--- Processing PDF: {file_path} ---")
+        
+        # 1. Extract Standard Text
+        print("📄 Extracting Text...")
         loader = PyPDFLoader(file_path)
-        docs = loader.load()
-        chunks = self._get_splitter().split_documents(docs)
+        text_docs = loader.load()
+        
+        # 2. Extract & Describe Images (Multimodal)
+        print("👁️ Extracting Images (Multimodal)...")
+        try:
+            image_docs = self.vision_parser.extract_and_describe_images(file_path)
+            print(f"   --> Added {len(image_docs)} image descriptions.")
+        except Exception as e:
+            print(f"❌ Vision Warning (Skipping images): {e}")
+            image_docs = []
+
+        # 3. Combine & Split
+        # We treat the image descriptions just like text paragraphs now
+        all_docs = text_docs + image_docs
+        chunks = self._get_splitter().split_documents(all_docs)
+        
+        # 4. Index
         self._index_documents(chunks, notebook_id)
 
     # Text/Markdown
@@ -72,7 +95,6 @@ class IngestionService:
     def process_url(self, url: str, notebook_id: str):
         print(f"--- Processing URL: {url} ---")
         
-        # FIX: Add a User-Agent header so websites think we are a browser
         loader = WebBaseLoader(
             url,
             header_template={
@@ -83,24 +105,17 @@ class IngestionService:
         chunks = self._get_splitter().split_documents(docs)
         self._index_documents(chunks, notebook_id)
         
-        # Return title, or fallback to URL if title is missing
         return docs[0].metadata.get('title', url)
 
-    #MODE 4: GOOGLE DRIVE FILE ---
+    # MODE 4: GOOGLE DRIVE FILE ---
     def process_drive_file(self, file_id: str, access_token: str, notebook_id: str):
-        """
-        Download a file from Google Drive and ingest it.
-        """
         try:
-            # 1. Connect to Drive using the user's token
             creds = Credentials(token=access_token)
             service = build('drive', 'v3', credentials=creds)
 
-            # 2. Get File Metadata (Name)
             file_metadata = service.files().get(fileId=file_id).execute()
             filename = file_metadata.get('name', 'drive_file.pdf')
 
-            # 3. Download File Content
             request = service.files().get_media(fileId=file_id)
             file_stream = io.BytesIO()
             downloader = MediaIoBaseDownload(file_stream, request)
@@ -109,26 +124,20 @@ class IngestionService:
             while done is False:
                 status, done = downloader.next_chunk()
 
-            # Reset stream pointer to beginning
             file_stream.seek(0)
 
-            # 4. Save to Temp File (Standardizing for PyPDFLoader)
-            # (We reuse the existing PDF loader logic by saving it temporarily)
             temp_filename = f"temp_drive_{filename}"
             with open(temp_filename, "wb") as f:
                 f.write(file_stream.read())
 
-            # 5. Process
             try:
                 if filename.endswith(".pdf"):
                     self.process_pdf(temp_filename, notebook_id)
                 else:
-                    # Fallback for text/docs
                     self.process_text_file(temp_filename, notebook_id)
                 
-                return filename # Return name for DB
+                return filename 
             finally:
-                # Cleanup
                 if os.path.exists(temp_filename):
                     os.remove(temp_filename)
 
@@ -136,11 +145,7 @@ class IngestionService:
             print(f"Drive Ingestion Error: {e}")
             raise e
 
-    # Delete Functionality
     def delete_notebook_content(self, notebook_id: str):
-        """
-        Wipes all vectors associated with a specific notebook namespace.
-        """
         try:
             index = self.pc.Index(PINECONE_INDEX_NAME)
             index.delete(delete_all=True, namespace=notebook_id)

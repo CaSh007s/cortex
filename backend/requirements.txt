@@ -1,18 +1,32 @@
+# Core Framework
 fastapi
 uvicorn
 python-dotenv
 python-multipart
-pypdf
-tiktoken
-beautifulsoup4
-supabase
-pinecone
 
-# --- MODERN STACK ---
-langchain-community>=0.3.0
+# Database & Storage
+supabase
+pinecone<8.0.0
+
+# Document Processing
+pypdf
+pymupdf
+pillow
+beautifulsoup4
+tiktoken
+
+# LangChain Ecosystem (Modern 0.3.x Stack)
+langchain>=0.3.0
 langchain-core>=0.3.0
+langchain-community>=0.3.0
 langchain-text-splitters>=0.3.0
 langchain-google-genai>=2.0.0
 langchain-pinecone>=0.2.0
-langsmith>=0.1.0
+
+# Agents & Search
+langgraph
+tavily-python
+langchain-tavily
+
+# AI Models
 google-generativeai>=0.8.3
