@@ -48,24 +48,28 @@ def remove_user_gemini_key(user_id: str):
 # --- Notebook Operations ---
 
 def get_all_notebooks(user_id: str):
-    # Select all notebooks for the SPECIFIC user, ordered by newest
-    response = supabase.table("notebooks") \
-        .select("*") \
-        .eq("user_id", user_id) \
-        .order("created_at", desc=True) \
-        .execute()
-    
-    notebooks = response.data
-    
-    # Manually fetch the file lists for the UI to show the count
-    for nb in notebooks:
-        files_response = supabase.table("files") \
-            .select("name") \
-            .eq("notebook_id", nb['id']) \
+    try:
+        # Select all notebooks for the SPECIFIC user, ordered by newest
+        response = supabase.table("notebooks") \
+            .select("*") \
+            .eq("user_id", user_id) \
+            .order("created_at", desc=True) \
             .execute()
-        nb['files'] = [f['name'] for f in files_response.data]
         
-    return notebooks
+        notebooks = response.data or []
+        
+        # Manually fetch the file lists for the UI to show the count
+        for nb in notebooks:
+            files_response = supabase.table("files") \
+                .select("name") \
+                .eq("notebook_id", nb['id']) \
+                .execute()
+            nb['files'] = [f['name'] for f in (files_response.data or [])]
+            
+        return notebooks
+    except Exception as e:
+        print(f"Error fetching notebooks: {e}")
+        return []
 
 def create_notebook(name: str, user_id: str):
     response = supabase.table("notebooks").insert({
@@ -79,35 +83,39 @@ def create_notebook(name: str, user_id: str):
     return new_notebook
 
 def get_notebook(notebook_id: str, user_id: str):
-    # Get Metadata - WITH SECURITY CHECK
-    nb_response = supabase.table("notebooks") \
-        .select("*") \
-        .eq("id", notebook_id) \
-        .eq("user_id", user_id) \
-        .execute()
+    try:
+        # Get Metadata - WITH SECURITY CHECK
+        nb_response = supabase.table("notebooks") \
+            .select("*") \
+            .eq("id", notebook_id) \
+            .eq("user_id", user_id) \
+            .execute()
+            
+        if not nb_response.data:
+            # If notebook doesn't exist OR doesn't belong to user, return None
+            return None
+            
+        notebook = nb_response.data[0]
         
-    if not nb_response.data:
-        # If notebook doesn't exist OR doesn't belong to user, return None
+        # Get Files
+        files_response = supabase.table("files") \
+            .select("name") \
+            .eq("notebook_id", notebook_id) \
+            .execute()
+        notebook['files'] = [f['name'] for f in (files_response.data or [])]
+        
+        # Get Messages
+        msg_response = supabase.table("messages") \
+            .select("*") \
+            .eq("notebook_id", notebook_id) \
+            .order("created_at", desc=False) \
+            .execute()
+        notebook['messages'] = msg_response.data or []
+        
+        return notebook
+    except Exception as e:
+        print(f"Error fetching notebook details: {e}")
         return None
-        
-    notebook = nb_response.data[0]
-    
-    # Get Files
-    files_response = supabase.table("files") \
-        .select("name") \
-        .eq("notebook_id", notebook_id) \
-        .execute()
-    notebook['files'] = [f['name'] for f in files_response.data]
-    
-    # Get Messages
-    msg_response = supabase.table("messages") \
-        .select("*") \
-        .eq("notebook_id", notebook_id) \
-        .order("created_at", desc=False) \
-        .execute()
-    notebook['messages'] = msg_response.data
-    
-    return notebook
 
 def rename_notebook(notebook_id: str, new_name: str, user_id: str):
     response = supabase.table("notebooks") \

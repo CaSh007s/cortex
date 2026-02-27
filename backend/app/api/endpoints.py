@@ -48,19 +48,44 @@ class DriveIngestRequest(BaseModel):
 # --- Notebook Routes (Standard) ---
 @router.get("/notebooks")
 def list_notebooks(user_id: str = Depends(get_current_user)):
-    return get_all_notebooks(user_id)
+    try:
+        return get_all_notebooks(user_id)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to list notebooks: {str(e)}")
 
 @router.post("/notebooks")
 def create_new_notebook(request: CreateNotebookRequest, user_id: str = Depends(get_current_user)):
-    return create_notebook(request.name, user_id)
+    try:
+        return create_notebook(request.name, user_id)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to create notebook: {str(e)}")
 
 @router.get("/notebooks/{notebook_id}")
 def get_notebook_details(notebook_id: str, user_id: str = Depends(get_current_user)):
-    return get_notebook(notebook_id, user_id)
+    try:
+        notebook = get_notebook(notebook_id, user_id)
+        if not notebook:
+            raise HTTPException(status_code=404, detail="Notebook not found")
+        return notebook
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to get notebook details: {str(e)}")
 
 @router.put("/notebooks/{notebook_id}")
 def update_notebook(notebook_id: str, request: CreateNotebookRequest, user_id: str = Depends(get_current_user)):
-    return rename_notebook(notebook_id, request.name, user_id)
+    try:
+        return rename_notebook(notebook_id, request.name, user_id)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to update notebook: {str(e)}")
 
 @router.delete("/notebooks/{notebook_id}")
 def remove_notebook(notebook_id: str, user_id: str = Depends(get_current_user)):
@@ -77,8 +102,13 @@ def remove_notebook(notebook_id: str, user_id: str = Depends(get_current_user)):
 
 @router.delete("/notebooks/{notebook_id}/files/{filename}")
 def delete_file(notebook_id: str, filename: str, user_id: str = Depends(get_current_user)):
-    delete_file_from_notebook(notebook_id, filename, user_id)
-    return {"status": "deleted"}
+    try:
+        delete_file_from_notebook(notebook_id, filename, user_id)
+        return {"status": "deleted"}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to delete file: {str(e)}")
 
 # --- Chat Route (ROLLED BACK TO STANDARD) ---
 @router.post("/chat")
