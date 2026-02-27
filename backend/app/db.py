@@ -14,6 +14,25 @@ if not url or not key:
 
 supabase: Client = create_client(url, key)
 
+# --- Gemini API Key Operations ---
+
+def save_user_gemini_key(user_id: str, encrypted_key: str):
+    response = supabase.table("user_keys").upsert({
+        "user_id": user_id,
+        "encrypted_gemini_key": encrypted_key
+    }).execute()
+    return True if response.data else False
+
+def get_user_gemini_key(user_id: str):
+    response = supabase.table("user_keys").select("encrypted_gemini_key").eq("user_id", user_id).execute()
+    if response.data:
+        return response.data[0]["encrypted_gemini_key"]
+    return None
+
+def remove_user_gemini_key(user_id: str):
+    supabase.table("user_keys").delete().eq("user_id", user_id).execute()
+    return True
+
 # --- Notebook Operations ---
 
 def get_all_notebooks(user_id: str):

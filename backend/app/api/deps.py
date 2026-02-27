@@ -20,29 +20,28 @@ supabase: Client = create_client(url, key)
 # The "Bearer" scheme expects a header like: Authorization: Bearer <token>
 security = HTTPBearer()
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+def get_current_user_object(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """
-    Validates the JWT token sent by the frontend.
-    Returns the user_id if valid.
+    Validates the JWT token sent by the frontend and returns the full user object.
     """
     token = credentials.credentials
-    
     try:
-        # Ask Supabase to verify the User
         user = supabase.auth.get_user(token)
-        
         if not user or not user.user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication credentials",
             )
-            
-        # Return the specific User ID
-        return user.user.id
-        
+        return user.user
     except Exception as e:
         print(f"Auth Error: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
         )
+
+def get_current_user(user = Depends(get_current_user_object)):
+    """
+    Returns just the user_id for backward compatibility with existing endpoints.
+    """
+    return user.id

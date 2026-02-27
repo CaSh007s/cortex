@@ -22,14 +22,14 @@ PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 class IngestionService:
-    def __init__(self):
+    def __init__(self, google_api_key: str):
         self.pc = Pinecone(api_key=PINECONE_API_KEY)
         self.embeddings = GoogleGenerativeAIEmbeddings(
             model="models/gemini-embedding-001", 
-            google_api_key=GOOGLE_API_KEY
+            google_api_key=google_api_key
         )
         # --- NEW: Initialize Vision ---
-        self.vision_parser = VisionParser(google_api_key=GOOGLE_API_KEY)
+        self.vision_parser = VisionParser(google_api_key=google_api_key)
 
     def _get_splitter(self):
         return RecursiveCharacterTextSplitter(

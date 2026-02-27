@@ -24,11 +24,11 @@ class AgentState(TypedDict):
     messages: Annotated[List[BaseMessage], add_messages]
 
 class RagService:
-    def __init__(self):
+    def __init__(self, google_api_key: str):
         # Embeddings
         self.embeddings = GoogleGenerativeAIEmbeddings(
             model="models/gemini-embedding-001", 
-            google_api_key=GOOGLE_API_KEY
+            google_api_key=google_api_key
         )
         
         # Vector Store
@@ -41,7 +41,7 @@ class RagService:
         self.llm = ChatGoogleGenerativeAI(
             model="gemini-2.5-flash", 
             temperature=0,
-            google_api_key=GOOGLE_API_KEY
+            google_api_key=google_api_key
         )
 
         # Tools

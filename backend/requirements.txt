@@ -29,4 +29,4 @@ tavily-python
 langchain-tavily
 
 # AI Models
-google-generativeai>=0.8.3
+google-generativeai>=0.8.3cryptography==42.0.5

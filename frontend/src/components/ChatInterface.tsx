@@ -10,13 +10,14 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
 import { Typewriter } from "@/components/Typewriter";
 import { ThinkingWave } from "@/components/ThinkingWave";
+import { ApiKeyModal } from "@/components/ApiKeyModal";
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { secureFetch } from "@/lib/secureFetch";
-import { useVoice } from '@/hooks/useVoice';
+import { useVoice } from "@/hooks/useVoice";
 
 interface ChatInterfaceProps {
   notebookId: string;
@@ -25,15 +26,15 @@ interface ChatInterfaceProps {
 interface Message {
   role: "user" | "assistant";
   content: string;
-  sources?: (string | { page: number; source: string })[]; 
+  sources?: (string | { page: number; source: string })[];
 }
 
 export function ChatInterface({ notebookId }: ChatInterfaceProps) {
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-  
+
   // --- 1. Voice Hook Integration ---
-  const { isListening, transcript, toggleListening, speak, hasSupport } = useVoice();
-  
+  const { isListening, transcript, toggleListening, hasSupport } = useVoice();
+
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -42,6 +43,7 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // --- 2. Sync Voice Transcript to Input Box ---
@@ -55,12 +57,18 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await secureFetch(`${API_BASE}/api/notebooks/${notebookId}`);
+        const res = await secureFetch(
+          `${API_BASE}/api/notebooks/${notebookId}`,
+        );
         if (res.ok) {
           const data = await res.json();
-          if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+          if (
+            data.messages &&
+            Array.isArray(data.messages) &&
+            data.messages.length > 0
+          ) {
             setMessages(data.messages);
-          } 
+          }
         }
       } catch (err) {
         console.error("Failed to load history", err);
@@ -88,9 +96,9 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
       const response = await secureFetch(`${API_BASE}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-            message: userMessage.content,
-            notebookId: notebookId 
+        body: JSON.stringify({
+          message: userMessage.content,
+          notebookId: notebookId,
         }),
       });
 
@@ -100,7 +108,7 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
       }
 
       const data = await response.json();
-      
+
       const aiMessage: Message = {
         role: "assistant",
         content: data.answer,
@@ -108,20 +116,31 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
       };
       setMessages((prev) => [...prev, aiMessage]);
 
-      // Note: Auto-speak is currently disabled. 
+      // Note: Auto-speak is currently disabled.
       // Uncomment the line below to re-enable it.
-      // speak(data.answer); 
-      
+      // speak(data.answer);
     } catch (error: unknown) {
       console.error(error);
-      
+
       let errorMessage = "Something went wrong.";
-      
+
       // Type Guard: Safely extract the message
       if (error instanceof Error) {
         errorMessage = error.message;
       } else if (typeof error === "string") {
         errorMessage = error;
+      }
+
+      // BYOK Intercept
+      if (
+        errorMessage.includes("Bring Your Own Key") ||
+        errorMessage.includes("Gemini API key is invalid")
+      ) {
+        setIsModalOpen(true);
+        // Restore user message to input and remove from history so they can try again easily
+        setInput(userMessage.content);
+        setMessages((prev) => prev.slice(0, -1));
+        return;
       }
 
       setMessages((prev) => [
@@ -141,7 +160,7 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5, delay: 0.1 }}
@@ -150,9 +169,11 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
       {/* Header */}
       <div className="p-4 border-b border-white/10 flex items-center gap-3 bg-black/20">
         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-        <h2 className="text-sm font-medium text-slate-200 tracking-wide">LIVE SESSION</h2>
+        <h2 className="text-sm font-medium text-slate-200 tracking-wide">
+          LIVE SESSION
+        </h2>
       </div>
-      
+
       {/* Messages Area */}
       <div className="flex-1 overflow-hidden relative">
         <ScrollArea className="h-full p-6">
@@ -183,11 +204,13 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
                         : "bg-white/5 border border-white/10 text-slate-100"
                     }`}
                   >
-                    {msg.role === "assistant" && index === messages.length - 1 && !loading ? (
+                    {msg.role === "assistant" &&
+                    index === messages.length - 1 &&
+                    !loading ? (
                       <Typewriter content={msg.content} speed={15} />
                     ) : (
                       <div className="prose prose-invert max-w-none text-sm">
-                         <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
                       </div>
                     )}
 
@@ -195,9 +218,15 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
                     {Array.isArray(msg.sources) && msg.sources.length > 0 && (
                       <div className="mt-4 flex flex-wrap gap-2 pt-2 border-t border-white/5">
                         {msg.sources.map((source, idx) => {
-                          const pageNum = typeof source === 'object' && source.page ? source.page : '1';
-                          const fileName = typeof source === 'object' && source.source ? source.source : String(source);
-                          
+                          const pageNum =
+                            typeof source === "object" && source.page
+                              ? source.page
+                              : "1";
+                          const fileName =
+                            typeof source === "object" && source.source
+                              ? source.source
+                              : String(source);
+
                           return (
                             <HoverCard key={idx}>
                               <HoverCardTrigger asChild>
@@ -216,8 +245,9 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
                                   </div>
                                   <div className="p-3">
                                     <p className="text-xs text-slate-400 leading-relaxed">
-                                      Referenced from Page {pageNum}. 
-                                      This segment was identified as highly relevant to your query.
+                                      Referenced from Page {pageNum}. This
+                                      segment was identified as highly relevant
+                                      to your query.
                                     </p>
                                   </div>
                                 </div>
@@ -229,8 +259,8 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
                     )}
                   </div>
 
-                   {/* User Avatar */}
-                   {msg.role === "user" && (
+                  {/* User Avatar */}
+                  {msg.role === "user" && (
                     <Avatar className="h-8 w-8 border border-white/10">
                       <AvatarFallback className="bg-slate-700 text-slate-300">
                         <User className="w-4 h-4" />
@@ -242,21 +272,23 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
             </AnimatePresence>
 
             {loading && (
-               <motion.div 
-                 initial={{ opacity: 0 }} 
-                 animate={{ opacity: 1 }}
-                 className="flex gap-4"
-               >
-                 <Avatar className="h-8 w-8 border border-white/10">
-                    <AvatarFallback className="bg-indigo-600/20 text-indigo-300">
-                      <Bot className="w-4 h-4" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3">
-                    <ThinkingWave />
-                    <span className="text-xs text-slate-400 animate-pulse">Thinking...</span>
-                  </div>
-               </motion.div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex gap-4"
+              >
+                <Avatar className="h-8 w-8 border border-white/10">
+                  <AvatarFallback className="bg-indigo-600/20 text-indigo-300">
+                    <Bot className="w-4 h-4" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3">
+                  <ThinkingWave />
+                  <span className="text-xs text-slate-400 animate-pulse">
+                    Thinking...
+                  </span>
+                </div>
+              </motion.div>
             )}
             <div ref={scrollRef} />
           </div>
@@ -266,44 +298,58 @@ export function ChatInterface({ notebookId }: ChatInterfaceProps) {
       {/* Input Area */}
       <div className="p-4 border-t border-white/10 bg-black/20">
         <div className="relative flex items-center gap-2">
-            
-            {/* --- 4. Voice Input Button --- */}
-            {hasSupport && (
-              <Button
-                onClick={toggleListening}
-                size="icon"
-                variant="ghost"
-                className={`rounded-full transition-all duration-300 ${
-                  isListening 
-                    ? "bg-red-500/20 text-red-400 hover:bg-red-500/30 animate-pulse border border-red-500/50" 
-                    : "bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-              </Button>
-            )}
-
-            <Input
-              placeholder={isListening ? "Listening..." : "Ask anything..."}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={loading}
-              className={`bg-white/5 border-white/10 text-white placeholder:text-slate-500 rounded-full py-6 px-6 focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus-visible:border-indigo-500 transition-all duration-300 shadow-[0_0_20px_rgba(99,102,241,0.1)] focus:shadow-[0_0_30px_rgba(99,102,241,0.3)] ${
-                isListening ? "ring-2 ring-red-500/50 border-red-500/50 placeholder:text-red-400" : ""
+          {/* --- 4. Voice Input Button --- */}
+          {hasSupport && (
+            <Button
+              onClick={toggleListening}
+              size="icon"
+              variant="ghost"
+              className={`rounded-full transition-all duration-300 ${
+                isListening
+                  ? "bg-red-500/20 text-red-400 hover:bg-red-500/30 animate-pulse border border-red-500/50"
+                  : "bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white"
               }`}
-            />
-            
-            <Button 
-                onClick={handleSend} 
-                disabled={loading} 
-                size="icon"
-                className="h-10 w-10 bg-indigo-600 hover:bg-indigo-500 rounded-full shrink-0"
             >
-              <Send className="w-4 h-4" />
+              {isListening ? (
+                <MicOff className="w-5 h-5" />
+              ) : (
+                <Mic className="w-5 h-5" />
+              )}
             </Button>
+          )}
+
+          <Input
+            placeholder={isListening ? "Listening..." : "Ask anything..."}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={loading}
+            className={`bg-white/5 border-white/10 text-white placeholder:text-slate-500 rounded-full py-6 px-6 focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus-visible:border-indigo-500 transition-all duration-300 shadow-[0_0_20px_rgba(99,102,241,0.1)] focus:shadow-[0_0_30px_rgba(99,102,241,0.3)] ${
+              isListening
+                ? "ring-2 ring-red-500/50 border-red-500/50 placeholder:text-red-400"
+                : ""
+            }`}
+          />
+
+          <Button
+            onClick={handleSend}
+            disabled={loading}
+            size="icon"
+            className="h-10 w-10 bg-indigo-600 hover:bg-indigo-500 rounded-full shrink-0"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
         </div>
       </div>
+
+      <ApiKeyModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        onSuccess={() => {
+          // Optional: automatically send the restored input
+          // But waiting for the user to press enter is safer
+        }}
+      />
     </motion.div>
   );
 }
