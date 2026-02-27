@@ -17,21 +17,33 @@ supabase: Client = create_client(url, key)
 # --- Gemini API Key Operations ---
 
 def save_user_gemini_key(user_id: str, encrypted_key: str):
-    response = supabase.table("user_keys").upsert({
-        "user_id": user_id,
-        "encrypted_gemini_key": encrypted_key
-    }).execute()
-    return True if response.data else False
+    try:
+        response = supabase.table("user_keys").upsert({
+            "user_id": user_id,
+            "encrypted_gemini_key": encrypted_key
+        }).execute()
+        return True if response.data else False
+    except Exception as e:
+        print(f"Error saving to user_keys in Supabase: {e}")
+        return False
 
 def get_user_gemini_key(user_id: str):
-    response = supabase.table("user_keys").select("encrypted_gemini_key").eq("user_id", user_id).execute()
-    if response.data:
-        return response.data[0]["encrypted_gemini_key"]
-    return None
+    try:
+        response = supabase.table("user_keys").select("encrypted_gemini_key").eq("user_id", user_id).execute()
+        if response.data:
+            return response.data[0]["encrypted_gemini_key"]
+        return None
+    except Exception as e:
+        print(f"Error fetching user_keys from Supabase: {e}")
+        return None
 
 def remove_user_gemini_key(user_id: str):
-    supabase.table("user_keys").delete().eq("user_id", user_id).execute()
-    return True
+    try:
+        supabase.table("user_keys").delete().eq("user_id", user_id).execute()
+        return True
+    except Exception as e:
+        print(f"Error deleting user_keys from Supabase: {e}")
+        return False
 
 # --- Notebook Operations ---
 

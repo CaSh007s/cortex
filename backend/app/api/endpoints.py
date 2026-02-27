@@ -136,54 +136,64 @@ async def upload_document(
     notebookId: str = Form(...),
     current_user = Depends(get_current_user)
 ):
-    user_id = current_user.id
-    user_email = current_user.email
-    
-    # Apply Rate Limiting
-    check_rate_limit(user_id)
-    
-    # Payload Validation (10MB limit)
-    if file.size and file.size > 10 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="File too large (max 10MB)")
-    
-    # Resolve the API key eagerly. This prevents uploading if key is missing.
-    gemini_api_key = resolve_gemini_key(user_id, user_email)
+    try:
+        user_id = current_user.id
+        user_email = current_user.email
+        
+        # Apply Rate Limiting
+        check_rate_limit(user_id)
+        
+        # Payload Validation (10MB limit)
+        if hasattr(file, 'size') and file.size and file.size > 10 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="File too large (max 10MB)")
+        
+        # Resolve the API key eagerly. This prevents uploading if key is missing.
+        gemini_api_key = resolve_gemini_key(user_id, user_email)
 
-    allowed_types = ["application/pdf", "text/plain", "application/octet-stream"]
-    if file.content_type not in allowed_types and not file.filename.endswith(".txt"):
-        raise HTTPException(status_code=400, detail="Only PDF or TXT allowed")
+        allowed_types = ["application/pdf", "text/plain", "application/octet-stream"]
+        if file.content_type not in allowed_types and not file.filename.endswith(".txt"):
+            raise HTTPException(status_code=400, detail="Only PDF or TXT allowed")
 
-    file_location = f"temp_{file.filename}"
-    with open(file_location, "wb+") as file_object:
-        shutil.copyfileobj(file.file, file_object)
+        file_location = f"temp_{file.filename}"
+        with open(file_location, "wb+") as file_object:
+            shutil.copyfileobj(file.file, file_object)
 
-    add_file_to_notebook(notebookId, file.filename, user_id)
+        add_file_to_notebook(notebookId, file.filename, user_id)
 
-    def background_ingestion(path, n_id, f_name, c_type, g_api_key):
-        dynamic_ingestion_service = get_ingestion_service(g_api_key)
-        try:
-            if c_type == "application/pdf" or f_name.endswith(".pdf"):
-                dynamic_ingestion_service.process_pdf(path, n_id)
-            else:
-                dynamic_ingestion_service.process_text_file(path, n_id)
-        except Exception as e:
-            print(f"Ingestion Failed: {e}")
-        finally:
-            if os.path.exists(path):
-                os.remove(path)
+        def background_ingestion(path, n_id, f_name, c_type, g_api_key):
+            try:
+                dynamic_ingestion_service = get_ingestion_service(g_api_key)
+                if c_type == "application/pdf" or f_name.endswith(".pdf"):
+                    dynamic_ingestion_service.process_pdf(path, n_id)
+                else:
+                    dynamic_ingestion_service.process_text_file(path, n_id)
+            except Exception as e:
+                import traceback
+                print(f"Ingestion Failed: {e}")
+                traceback.print_exc()
+            finally:
+                if os.path.exists(path):
+                    os.remove(path)
 
-    background_tasks.add_task(background_ingestion, file_location, notebookId, file.filename, file.content_type, gemini_api_key)
-    return {"message": "Upload started"}
+        background_tasks.add_task(background_ingestion, file_location, notebookId, file.filename, file.content_type, gemini_api_key)
+        return {"message": "Upload started"}
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Upload processing failed: {str(e)}")
 
 @router.post("/ingest-url")
 async def ingest_url(request: UrlIngestRequest, current_user = Depends(get_current_user)):
-    user_id = current_user.id
-    user_email = current_user.email
-    
-    # Apply Rate Limiting
-    check_rate_limit(user_id)
-    
     try:
+        user_id = current_user.id
+        user_email = current_user.email
+        
+        # Apply Rate Limiting
+        check_rate_limit(user_id)
+        
         gemini_api_key = resolve_gemini_key(user_id, user_email)
         dynamic_ingestion_service = get_ingestion_service(gemini_api_key)
         
@@ -194,7 +204,9 @@ async def ingest_url(request: UrlIngestRequest, current_user = Depends(get_curre
     except HTTPException as he:
         raise he
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Ingest URL failed: {str(e)}")
 
 # --- BYOK Route ---
 @router.post("/user/gemini-key")
