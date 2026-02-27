@@ -64,7 +64,14 @@ def update_notebook(notebook_id: str, request: CreateNotebookRequest, user_id: s
 
 @router.delete("/notebooks/{notebook_id}")
 def remove_notebook(notebook_id: str, user_id: str = Depends(get_current_user)):
-    ingestion_service.delete_notebook_content(notebook_id)
+    try:
+        # Use server default key to delete pinecone records
+        dummy_key = os.getenv("GOOGLE_API_KEY", "dummy_key")
+        dynamic_ingestion = get_ingestion_service(dummy_key)
+        dynamic_ingestion.delete_notebook_content(notebook_id)
+    except Exception as e:
+        print(f"Failed to delete pinecone content: {e}")
+        
     delete_notebook(notebook_id, user_id)
     return {"status": "success"}
 
