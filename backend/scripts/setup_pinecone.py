@@ -23,10 +23,9 @@ try:
     
     if index_name not in index_names:
         print(f"Index '{index_name}' not found. Attempting to create it...")
-        # dimension for gemini-embedding-001 or text-embedding-004 is 768
         pc.create_index(
             name=index_name,
-            dimension=768,
+            dimension=3072,
             metric="cosine",
             spec=ServerlessSpec(
                 cloud="aws",
