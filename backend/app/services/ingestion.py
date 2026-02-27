@@ -25,7 +25,7 @@ class IngestionService:
     def __init__(self):
         self.pc = Pinecone(api_key=PINECONE_API_KEY)
         self.embeddings = GoogleGenerativeAIEmbeddings(
-            model="models/text-embedding-004", 
+            model="models/gemini-embedding-001", 
             google_api_key=GOOGLE_API_KEY
         )
         # --- NEW: Initialize Vision ---
@@ -44,7 +44,7 @@ class IngestionService:
         if PINECONE_INDEX_NAME not in existing_indexes:
             self.pc.create_index(
                 name=PINECONE_INDEX_NAME,
-                dimension=768, 
+                dimension=3072, 
                 metric="cosine",
                 spec=ServerlessSpec(cloud="aws", region="us-east-1")
             )
