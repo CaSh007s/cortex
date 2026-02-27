@@ -8,7 +8,12 @@ from app.api.endpoints import router
 app = FastAPI(title="RAG Portfolio API")
 
 # CORS Configuration
-origins = ["*"]
+origins = [
+    "http://localhost",
+    "http://localhost:3000",
+    "https://cortex-rag.vercel.app",
+    "*"  # Fallback
+]
 
 app.add_middleware(
     CORSMiddleware,
