@@ -4,7 +4,7 @@ from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Background
 from pydantic import BaseModel, Field
 from typing import List
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, get_current_user_object
 from app.db import (
     get_all_notebooks, create_notebook, add_file_to_notebook, 
     get_notebook, add_message_to_notebook, delete_file_from_notebook,
@@ -82,7 +82,7 @@ def delete_file(notebook_id: str, filename: str, user_id: str = Depends(get_curr
 
 # --- Chat Route (ROLLED BACK TO STANDARD) ---
 @router.post("/chat")
-async def chat(request: ChatRequest, current_user = Depends(get_current_user)):
+async def chat(request: ChatRequest, current_user = Depends(get_current_user_object)):
     user_id = current_user.id
     user_email = current_user.email
     
@@ -134,7 +134,7 @@ async def upload_document(
     background_tasks: BackgroundTasks, 
     file: UploadFile = File(...),
     notebookId: str = Form(...),
-    current_user = Depends(get_current_user)
+    current_user = Depends(get_current_user_object)
 ):
     try:
         user_id = current_user.id
@@ -186,7 +186,7 @@ async def upload_document(
         raise HTTPException(status_code=500, detail=f"Upload processing failed: {str(e)}")
 
 @router.post("/ingest-url")
-async def ingest_url(request: UrlIngestRequest, current_user = Depends(get_current_user)):
+async def ingest_url(request: UrlIngestRequest, current_user = Depends(get_current_user_object)):
     try:
         user_id = current_user.id
         user_email = current_user.email
@@ -210,7 +210,7 @@ async def ingest_url(request: UrlIngestRequest, current_user = Depends(get_curre
 
 # --- BYOK Route ---
 @router.post("/user/gemini-key")
-async def save_user_key(request: SaveKeyRequest, current_user = Depends(get_current_user)):
+async def save_user_key(request: SaveKeyRequest, current_user = Depends(get_current_user_object)):
     user_id = current_user.id
     try:
         # Encrypt the incoming key
