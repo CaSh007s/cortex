@@ -134,6 +134,14 @@ def delete_notebook(notebook_id: str, user_id: str):
         .execute()
     return True
 
+def get_notebook_count(user_id: str) -> int:
+    try:
+        response = supabase.table("notebooks").select("id", count="exact").eq("user_id", user_id).execute()
+        return response.count if response.count is not None else 0
+    except Exception as e:
+        print(f"Error counting notebooks: {e}")
+        return 0
+
 # --- File Operations ---
 
 def add_file_to_notebook(notebook_id: str, filename: str, user_id: str):
@@ -167,6 +175,14 @@ def delete_file_from_notebook(notebook_id: str, filename: str, user_id: str):
         .eq("notebook_id", notebook_id) \
         .eq("name", filename) \
         .execute()
+
+def get_file_count_in_notebook(notebook_id: str) -> int:
+    try:
+        response = supabase.table("files").select("id", count="exact").eq("notebook_id", notebook_id).execute()
+        return response.count if response.count is not None else 0
+    except Exception as e:
+        print(f"Error counting files in notebook: {e}")
+        return 0
 
 # --- Chat Operations ---
 

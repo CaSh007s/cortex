@@ -8,7 +8,8 @@ from app.api.deps import get_current_user, get_current_user_object
 from app.db import (
     get_all_notebooks, create_notebook, add_file_to_notebook, 
     get_notebook, add_message_to_notebook, delete_file_from_notebook,
-    rename_notebook, delete_notebook, delete_all_user_data
+    rename_notebook, delete_notebook, delete_all_user_data,
+    get_notebook_count, get_file_count_in_notebook
 )
 from app.services.ingestion import IngestionService
 from app.services.rag import RagService
@@ -58,6 +59,11 @@ def list_notebooks(user_id: str = Depends(get_current_user)):
 @router.post("/notebooks")
 def create_new_notebook(request: CreateNotebookRequest, user_id: str = Depends(get_current_user)):
     try:
+        # Check Storage Limit: Max 5 notebooks per user
+        count = get_notebook_count(user_id)
+        if count >= 5:
+            raise HTTPException(status_code=403, detail="Maximum limit of 5 notebooks reached.")
+            
         return create_notebook(request.name, user_id)
     except Exception as e:
         import traceback
@@ -176,6 +182,12 @@ async def upload_document(
         # Payload Validation (10MB limit)
         if hasattr(file, 'size') and file.size and file.size > 10 * 1024 * 1024:
             raise HTTPException(status_code=400, detail="File too large (max 10MB)")
+            
+        # Check Storage Limit: Max 2 files per notebook
+        count = get_file_count_in_notebook(notebookId)
+        if count >= 2:
+            raise HTTPException(status_code=403, detail="Maximum limit of 2 files per notebook reached.")
+        
         
         # Resolve the API key eagerly. This prevents uploading if key is missing.
         gemini_api_key = resolve_gemini_key(user_id, user_email)
@@ -225,6 +237,12 @@ async def ingest_url(request: UrlIngestRequest, current_user = Depends(get_curre
         check_rate_limit(user_id)
         
         gemini_api_key = resolve_gemini_key(user_id, user_email)
+        
+        # Check Storage Limit: Max 2 files per notebook
+        count = get_file_count_in_notebook(request.notebookId)
+        if count >= 2:
+            raise HTTPException(status_code=403, detail="Maximum limit of 2 files per notebook reached.")
+            
         dynamic_ingestion_service = get_ingestion_service(gemini_api_key)
         
         title = dynamic_ingestion_service.process_url(request.url, request.notebookId)
