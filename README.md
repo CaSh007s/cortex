@@ -100,8 +100,6 @@
 
 <h2>📸 Interface Preview</h2>
 
-<p><em>Note for Developer: Replace the images in the <code>screenshots/</code> directory with the updated UI shots using the exact filenames below.</em></p>
-
 <h3>Intelligent Analytics Dashboard (Responsive)</h3>
 <div align="center">
   <table width="100%">
