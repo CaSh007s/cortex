@@ -255,13 +255,13 @@ export function AppSidebar() {
                         className="group grid grid-cols-[1fr_auto] gap-2 items-center p-2 rounded-lg bg-white/5 border border-white/5 hover:border-indigo-500/30 transition-all"
                       >
                         {/* 1. Text Column (Strictly constrained) */}
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className="p-1.5 shrink-0 rounded bg-indigo-500/20 text-indigo-300">
+                        <div className="flex items-start gap-2 min-w-0 pt-0.5">
+                          <div className="p-1.5 shrink-0 rounded bg-indigo-500/20 text-indigo-300 mt-0.5">
                             <FileText className="w-3.5 h-3.5" />
                           </div>
-                          {/* The truncate happens here, forced by the grid parent */}
+                          {/* The name wraps fully instead of truncating */}
                           <span
-                            className="text-sm text-slate-300 truncate"
+                            className="text-sm text-slate-300 break-words leading-tight"
                             title={file}
                           >
                             {file}
@@ -272,7 +272,7 @@ export function AppSidebar() {
                         <button
                           onClick={() => handleDeleteFile(file)}
                           disabled={deletingFile === file}
-                          className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-500/20 rounded text-slate-500 hover:text-red-400 transition-all"
+                          className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-red-500/20 rounded text-slate-500 hover:text-red-400 transition-all self-start mt-0.5"
                           title="Remove Source"
                         >
                           {deletingFile === file ? (

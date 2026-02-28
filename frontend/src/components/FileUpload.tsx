@@ -82,7 +82,7 @@ export function FileUpload({ notebookId, onUploadComplete }: FileUploadProps) {
       className="w-full"
     >
       <div className="glass rounded-xl p-2 flex items-center gap-4">
-        <div className="relative group flex-1">
+        <div className="relative group flex-1 min-w-0">
           <input
             type="file"
             accept=".pdf"
