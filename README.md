@@ -20,7 +20,7 @@
     <a href="https://cortex-rag.vercel.app/">
       <img src="https://img.shields.io/badge/🚀_View_Live_Demo-cortex--rag.vercel.app-blue?style=for-the-badge&logo=vercel" alt="Live Demo" height="30">
     </a>
-    <a href="#">
+    <a href="https://youtu.be/izjxl_rqlv8">
       <img src="https://img.shields.io/badge/📺_Watch_YouTube_Demo-Video_Link_Here-red?style=for-the-badge&logo=youtube" alt="YouTube Demo" height="30">
     </a>
   </p>
