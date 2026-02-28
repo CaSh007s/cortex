@@ -152,7 +152,7 @@
     <tr>
       <td align="center" width="70%">
         <img src="screenshots/settings.png" alt="User Settings" style="border-radius: 10px; border: 1px solid #444;" height="300">
-        <br><br><strong>Bring Your Own Key (BYOK)</strong>
+        <br><br><strong>User Preferences</strong>
       </td>
       <td align="center" width="30%">
         <img src="screenshots/settings-mobile.png" alt="Settings Mobile" style="border-radius: 10px; border: 1px solid #444;" height="300">
@@ -167,24 +167,24 @@
 <h2>🚀 Getting Started</h2>
 
 <h3>1. Backend Setup</h3>
-<pre>
+```bash
 cd backend
 python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+source venv/bin/activate  # Windows: venv\\Scripts\\activate
 pip install -r requirements.txt
-</pre>
+```
 
 <h3>2. Frontend Setup</h3>
-<pre>
+```bash
 cd ../frontend
 npm install
-</pre>
+```
 
 <h3>3. Environment Variables</h3>
 <p>Create <code>.env</code> files in both <code>backend</code> and <code>frontend</code> directories following the <code>.env.example</code> templates.</p>
 
 <h3>4. Run the Application</h3>
-<pre>
+```bash
 # Terminal 1 (Backend)
 cd backend && python -m uvicorn main:app --reload
 
@@ -192,7 +192,7 @@ cd backend && python -m uvicorn main:app --reload
 
 cd frontend && npm run dev
 
-</pre>
+```
 
 <br />
 
@@ -203,7 +203,8 @@ cd frontend && npm run dev
     Built with ❤️ by <a href="https://github.com/CaSh007s"><strong>Kalash Pratap Gaur</strong></a>
   </p>
   <p>
-    <a href="https://github.com/CaSh007s">GitHub</a> • 
+    <a href="https://github.com/CaSh007s">GitHub</a> •
     <a href="https://github.com/CaSh007s/cortex">Repository</a>
   </p>
 </div>
+```
