@@ -210,4 +210,11 @@ def delete_all_user_data(user_id: str):
     """
     # 1. Delete all notebooks (Cascade should handle children like files/messages)
     supabase.table("notebooks").delete().eq("user_id", user_id).execute()
+    
+    # 2. Delete securely stored API Key (BYOK) from user profile metadata
+    try:
+        remove_user_gemini_key(user_id)
+    except Exception as e:
+        print(f"Warning: Failed to remove API key during account purge: {e}")
+        
     return True

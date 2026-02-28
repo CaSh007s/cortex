@@ -63,6 +63,7 @@ export default function SettingsPage() {
       });
 
       if (res.ok) {
+        localStorage.removeItem("hasGeminiKey");
         alert("Account wiped. Redirecting...");
         router.push("/dashboard");
         setTimeout(() => (window.location.href = "/dashboard"), 500);
