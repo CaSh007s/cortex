@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -61,6 +61,22 @@ export function AppSidebar() {
     : null;
   const isNotebookView = !!notebookId;
 
+  // Extract so it can be called dynamically on uploads
+  const fetchFiles = useCallback(
+    async (nId: string) => {
+      try {
+        const res = await secureFetch(`${API_BASE}/api/notebooks/${nId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setFiles(data.files || []);
+        }
+      } catch (err) {
+        console.error("Failed to load files", err);
+      }
+    },
+    [API_BASE],
+  );
+
   // 1. GLOBAL INIT
   useEffect(() => {
     const fetchNotebooks = async () => {
@@ -72,6 +88,14 @@ export function AppSidebar() {
         }
       } catch (err) {
         console.error("Sidebar load error:", err);
+      }
+
+      // Check for current notebook's active files anytime this triggers across app
+      const activeNotebookId = window.location.pathname.includes("/notebook/")
+        ? window.location.pathname.split("/notebook/")[1]?.split("/")[0]
+        : null;
+      if (activeNotebookId) {
+        fetchFiles(activeNotebookId);
       }
     };
 
@@ -98,27 +122,13 @@ export function AppSidebar() {
     window.addEventListener("notebooks-updated", fetchNotebooks);
     return () =>
       window.removeEventListener("notebooks-updated", fetchNotebooks);
-  }, [API_BASE]);
+  }, [API_BASE, fetchFiles]);
 
-  // 2. NOTEBOOK SPECIFIC: Fetch Files
+  // 2. NOTEBOOK SPECIFIC: Fetch Files initially
   useEffect(() => {
     if (!notebookId) return;
-
-    const fetchFiles = async () => {
-      try {
-        const res = await secureFetch(
-          `${API_BASE}/api/notebooks/${notebookId}`,
-        );
-        if (res.ok) {
-          const data = await res.json();
-          setFiles(data.files || []);
-        }
-      } catch (err) {
-        console.error("Failed to load files", err);
-      }
-    };
-    fetchFiles();
-  }, [notebookId, API_BASE]);
+    fetchFiles(notebookId);
+  }, [notebookId, fetchFiles]);
 
   const handleLogout = async () => {
     try {
