@@ -1,17 +1,20 @@
 <div align="center">
-  <h1>Cortex: AI-Powered Financial Intelligence</h1>
+  <h1>Cortex: Your AI-Powered Research Assistant</h1>
   
   <p>
     <strong>Analyze. Synthesize. Strategize.</strong>
     <br />
-    A professional-grade RAG platform fueled by <strong>Gemini 2.5 Flash</strong> and <strong>LangGraph</strong>. 
+    A powerful <strong>RAG (Retrieval-Augmented Generation) Platform</strong> fueled by <strong>Gemini 2.5 Flash</strong> and <strong>LangGraph</strong>. 
     <br />
-    Transforming static financial documents and portfolios into interactive, actionable insights.
+    Transforming static documents, PDFs, and web links into interactive, actionable research notebooks.
   </p>
 
   <p>
     <a href="https://cortex-rag.vercel.app/">
       <img src="https://img.shields.io/badge/🚀_View_Live_Demo-cortex--rag.vercel.app-blue?style=for-the-badge&logo=vercel" alt="Live Demo" height="30">
+    </a>
+    <a href="#">
+      <img src="https://img.shields.io/badge/📺_Watch_YouTube_Demo-Video_Link_Here-red?style=for-the-badge&logo=youtube" alt="YouTube Demo" height="30">
     </a>
   </p>
 
@@ -31,9 +34,16 @@
   </p>
 
   <br />
-  <a href="https://cortex-rag.vercel.app/">
-    <img src="screenshots/landing.png" alt="Cortex Landing Page" width="100%" style="border-radius: 10px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);">
-  </a>
+  <table width="100%">
+    <tr>
+      <td align="center" width="70%">
+        <img src="screenshots/landing.png" alt="Desktop Landing Page" style="border-radius: 10px; border: 1px solid #444;" height="400">
+      </td>
+      <td align="center" width="30%">
+        <img src="screenshots/landing-mobile.png" alt="Mobile Landing Page" style="border-radius: 10px; border: 1px solid #444;" height="400">
+      </td>
+    </tr>
+  </table>
   <br />
 </div>
 
@@ -41,11 +51,12 @@
 
 <h2>⚡ Key Features</h2>
 <ul>
-  <li><strong>🤖 Agentic Reasoning Loop:</strong> Powered by <strong>LangGraph</strong>, allowing the AI to "think" through complex financial queries rather than just retrieving text.</li>
+  <li><strong>🤖 Agentic Reasoning Loop:</strong> Powered by <strong>LangGraph</strong>, allowing the AI to "think" through complex queries rather than just retrieving text.</li>
   <li><strong>🧠 Enterprise RAG Pipeline:</strong> Orchestrated by <strong>LangChain</strong> for precise document chunking, citation, and hallucination reduction.</li>
-  <li><strong>🔍 Deep Semantic Search:</strong> Utilizes <strong>Supabase pgvector</strong> to find hidden connections in large PDF reports.</li>
-  <li><strong>📊 Live Analytics Dashboard:</strong> A responsive React interface for real-time data visualization and chat.</li>
-  <li><strong>🛡️ Secure Infrastructure:</strong> Full authentication via Supabase Auth and Row Level Security (RLS).</li>
+  <li><strong>🔑 Bring Your Own Key (BYOK):</strong> A secure, user-centric architecture that requires users to provide their own Gemini API key (AES-encrypted in the database) to use the app, ensuring zero LLM costs for the host.</li>
+  <li><strong>�️ Production-Ready Guardrails:</strong> Hardened with <strong>Upstash Redis</strong> rate-limiting (req/min & req/day) and Supabase row-level security quotas (max notebooks/files) to protect the backend from abuse.</li>
+  <li><strong>�🔍 Deep Semantic Search:</strong> Utilizes <strong>Supabase pgvector</strong> to find hidden connections across massive PDF uploads and web pages.</li>
+  <li><strong>📊 Live Analytics Dashboard:</strong> A highly responsive, <strong>collapsible React interface</strong> featuring real-time state synchronization via custom dispatch events. Fully optimized for both Desktop and Mobile.</li>
 </ul>
 
 <br />
@@ -79,7 +90,7 @@
         <img src="https://avatars.githubusercontent.com/u/126733545?s=200&v=4" width="45" alt="LangChain" /><br>LangChain
       </td>
       <td align="center" width="90">
-        <img src="https://avatars.githubusercontent.com/u/126733545?s=200&v=4" width="45" alt="LangGraph" /><br>LangGraph
+        <img src="https://skillicons.dev/icons?i=redis" width="45" alt="Redis" /><br>Redis
       </td>
     </tr>
   </table>
@@ -89,15 +100,39 @@
 
 <h2>📸 Interface Preview</h2>
 
-<h3>Intelligent Analytics Dashboard</h3>
+<p><em>Note for Developer: Replace the images in the <code>screenshots/</code> directory with the updated UI shots using the exact filenames below.</em></p>
+
+<h3>Intelligent Analytics Dashboard (Responsive)</h3>
 <div align="center">
-  <img src="screenshots/dashboard.png" width="100%" alt="Dashboard" style="border-radius: 10px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);">
+  <table width="100%">
+    <tr>
+      <td align="center" width="70%">
+        <img src="screenshots/dashboard.png" alt="Desktop Dashboard" style="border-radius: 10px; border: 1px solid #444;" height="350">
+        <br><br><strong>Desktop View (Collapsible Sidebar)</strong>
+      </td>
+      <td align="center" width="30%">
+        <img src="screenshots/dashboard-mobile.png" alt="Mobile Dashboard" style="border-radius: 10px; border: 1px solid #444;" height="350">
+        <br><br><strong>Mobile View</strong>
+      </td>
+    </tr>
+  </table>
 </div>
 <br />
 
 <h3>Context-Aware AI Chat</h3>
 <div align="center">
-  <img src="screenshots/chat.png" width="100%" alt="Chat Interface" style="border-radius: 10px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);">
+  <table width="100%">
+    <tr>
+      <td align="center" width="70%">
+        <img src="screenshots/chat.png" alt="Desktop Chat" style="border-radius: 10px; border: 1px solid #444;" height="350">
+        <br><br><strong>Immersive Reading Mode</strong>
+      </td>
+      <td align="center" width="30%">
+        <img src="screenshots/chat-mobile.png" alt="Mobile Chat" style="border-radius: 10px; border: 1px solid #444;" height="350">
+        <br><br><strong>Mobile Chat Interface</strong>
+      </td>
+    </tr>
+  </table>
 </div>
 <br />
 
@@ -105,13 +140,23 @@
 <div align="center">
   <table width="100%">
     <tr>
-      <td align="center" width="50%">
-        <img src="screenshots/upload.png" width="100%" alt="Document Upload" style="border-radius: 10px;">
-        <br><br><strong>Drag & Drop Upload</strong>
+      <td align="center" width="70%">
+        <img src="screenshots/upload.png" alt="Document Upload" style="border-radius: 10px; border: 1px solid #444;" height="300">
+        <br><br><strong>Context Upload</strong>
       </td>
-      <td align="center" width="50%">
-        <img src="screenshots/settings.png" width="100%" alt="User Settings" style="border-radius: 10px;">
-        <br><br><strong>User Preferences</strong>
+      <td align="center" width="30%">
+        <img src="screenshots/upload-mobile.png" alt="Upload Mobile" style="border-radius: 10px; border: 1px solid #444;" height="300">
+        <br><br><strong>Web Mobile</strong>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" width="70%">
+        <img src="screenshots/settings.png" alt="User Settings" style="border-radius: 10px; border: 1px solid #444;" height="300">
+        <br><br><strong>Bring Your Own Key (BYOK)</strong>
+      </td>
+      <td align="center" width="30%">
+        <img src="screenshots/settings-mobile.png" alt="Settings Mobile" style="border-radius: 10px; border: 1px solid #444;" height="300">
+        <br><br><strong>Mobile Config</strong>
       </td>
     </tr>
   </table>
