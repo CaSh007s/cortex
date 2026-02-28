@@ -15,16 +15,38 @@ export default function DashboardLayout({
   const router = useRouter();
 
   useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (session) {
+          setIsLoading(false);
+        } else if (event === "SIGNED_OUT") {
+          router.replace("/");
+        }
+      },
+    );
+
     const checkUser = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        if (
+          typeof window !== "undefined" &&
+          window.location.hash.includes("access_token")
+        ) {
+          return; // Wait for onAuthStateChange
+        }
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (!session) router.replace("/");
         else setIsLoading(false);
-      } catch (error) {
+      } catch {
         router.replace("/");
       }
     };
     checkUser();
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, [router]);
 
   if (isLoading) {
@@ -39,7 +61,7 @@ export default function DashboardLayout({
     <div className="flex h-screen bg-[#0B0C15] text-white overflow-hidden">
       {/* 1. The Persistent Sidebar */}
       <AppSidebar />
-      
+
       {/* 2. The Main Content Area */}
       <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-[#0B0C15]">
         {children}

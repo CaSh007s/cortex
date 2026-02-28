@@ -104,6 +104,8 @@ export function CreateNotebookModal({
       setUrl("");
       setText("");
 
+      window.dispatchEvent(new Event("notebooks-updated"));
+
       if (onSuccess) onSuccess();
       else router.push(`/dashboard/notebook/${notebook.id}`);
     } catch (error) {

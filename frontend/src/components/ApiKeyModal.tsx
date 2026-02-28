@@ -61,8 +61,10 @@ export function ApiKeyModal({
         setApiKey("");
         setSuccess(false);
       }, 1500);
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "An unexpected error occurred",
+      );
     } finally {
       setLoading(false);
     }
