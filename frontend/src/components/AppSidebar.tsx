@@ -121,6 +121,14 @@ export function AppSidebar() {
   }, [notebookId, API_BASE]);
 
   const handleLogout = async () => {
+    try {
+      await secureFetch(`${API_BASE}/api/user/gemini-key`, {
+        method: "DELETE",
+      });
+      localStorage.removeItem("hasGeminiKey");
+    } catch (e) {
+      console.error("Failed to delete key on logout", e);
+    }
     await supabase.auth.signOut();
     router.push("/");
   };

@@ -14,7 +14,7 @@ from app.db import (
 from app.services.ingestion import IngestionService
 from app.services.rag import RagService
 from app.utils.gemini_resolver import resolve_gemini_key
-from app.db import save_user_gemini_key
+from app.db import save_user_gemini_key, get_user_gemini_key, remove_user_gemini_key
 from app.utils.encryption import encrypt_key
 from app.utils.rate_limiter import check_rate_limit
 
@@ -271,6 +271,28 @@ async def save_user_key(request: SaveKeyRequest, current_user = Depends(get_curr
             raise HTTPException(status_code=500, detail="Failed to save API key.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error saving key: {str(e)}")
+
+@router.get("/user/gemini-key/status")
+async def check_user_key_status(current_user = Depends(get_current_user_object)):
+    user_id = current_user.id
+    try:
+        key = get_user_gemini_key(user_id)
+        has_key = key is not None and key != ""
+        return {"hasKey": has_key}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error checking key status: {str(e)}")
+
+@router.delete("/user/gemini-key")
+async def delete_user_key(current_user = Depends(get_current_user_object)):
+    user_id = current_user.id
+    try:
+        success = remove_user_gemini_key(user_id)
+        if success:
+            return {"status": "success", "message": "API Key deleted securely."}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to delete API key.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting key: {str(e)}")
     
 @router.delete("/purge-account")
 async def purge_account(user_id: str = Depends(get_current_user)):
