@@ -1,13 +1,20 @@
 <div align="center">
-  <h1>Cortex: Your AI-Powered Research Assistant</h1>
-  
-  <p>
+  <h1 style="margin-bottom: 10px;">Cortex: Your AI-Powered Research Assistant</h1>
+
+  <p style="font-size: 20px; margin-bottom: 10px;">
     <strong>Analyze. Synthesize. Strategize.</strong>
-    <br />
-    A powerful <strong>RAG (Retrieval-Augmented Generation) Platform</strong> fueled by <strong>Gemini 2.5 Flash</strong> and <strong>LangGraph</strong>. 
-    <br />
+  </p>
+
+  <br />
+
+  <p style="max-width: 800px; line-height: 1.6; font-size: 17px;">
+    A powerful <strong>RAG (Retrieval-Augmented Generation)</strong> platform 
+    fueled by <strong>Gemini 2.5 Flash</strong> and <strong>LangGraph</strong>.
+    <br /><br />
     Transforming static documents, PDFs, and web links into interactive, actionable research notebooks.
   </p>
+
+  <br />
 
   <p>
     <a href="https://cortex-rag.vercel.app/">
@@ -34,6 +41,7 @@
   </p>
 
   <br />
+
   <table width="100%">
     <tr>
       <td align="center" width="70%">
@@ -44,7 +52,6 @@
       </td>
     </tr>
   </table>
-  <br />
 </div>
 
 <br />
@@ -54,47 +61,10 @@
   <li><strong>🤖 Agentic Reasoning Loop:</strong> Powered by <strong>LangGraph</strong>, allowing the AI to "think" through complex queries rather than just retrieving text.</li>
   <li><strong>🧠 Enterprise RAG Pipeline:</strong> Orchestrated by <strong>LangChain</strong> for precise document chunking, citation, and hallucination reduction.</li>
   <li><strong>🔑 Bring Your Own Key (BYOK):</strong> A secure, user-centric architecture that requires users to provide their own Gemini API key (AES-encrypted in the database) to use the app, ensuring zero LLM costs for the host.</li>
-  <li><strong>�️ Production-Ready Guardrails:</strong> Hardened with <strong>Upstash Redis</strong> rate-limiting (req/min & req/day) and Supabase row-level security quotas (max notebooks/files) to protect the backend from abuse.</li>
-  <li><strong>�🔍 Deep Semantic Search:</strong> Utilizes <strong>Supabase pgvector</strong> to find hidden connections across massive PDF uploads and web pages.</li>
+  <li><strong>🛡️ Production-Ready Guardrails:</strong> Hardened with <strong>Upstash Redis</strong> rate-limiting (req/min & req/day) and Supabase row-level security quotas (max notebooks/files) to protect the backend from abuse.</li>
+  <li><strong>🔍 Deep Semantic Search:</strong> Utilizes <strong>Supabase pgvector</strong> to find hidden connections across massive PDF uploads and web pages.</li>
   <li><strong>📊 Live Analytics Dashboard:</strong> A highly responsive, <strong>collapsible React interface</strong> featuring real-time state synchronization via custom dispatch events. Fully optimized for both Desktop and Mobile.</li>
 </ul>
-
-<br />
-
-<h2>🛠️ Tech Stack</h2>
-<div align="center">
-  <table>
-    <tr>
-      <td align="center" width="90">
-        <img src="https://skillicons.dev/icons?i=react" width="45" alt="React" /><br>React
-      </td>
-      <td align="center" width="90">
-        <img src="https://skillicons.dev/icons?i=ts" width="45" alt="TypeScript" /><br>TypeScript
-      </td>
-      <td align="center" width="90">
-        <img src="https://skillicons.dev/icons?i=tailwind" width="45" alt="Tailwind" /><br>Tailwind
-      </td>
-      <td align="center" width="90">
-        <img src="https://skillicons.dev/icons?i=python" width="45" alt="Python" /><br>Python
-      </td>
-      <td align="center" width="90">
-        <img src="https://skillicons.dev/icons?i=fastapi" width="45" alt="FastAPI" /><br>FastAPI
-      </td>
-      <td align="center" width="90">
-        <img src="https://skillicons.dev/icons?i=supabase" width="45" alt="Supabase" /><br>Supabase
-      </td>
-      <td align="center" width="90">
-        <img src="https://skillicons.dev/icons?i=gcp" width="45" alt="Gemini" /><br>Gemini
-      </td>
-      <td align="center" width="90">
-        <img src="https://avatars.githubusercontent.com/u/126733545?s=200&v=4" width="45" alt="LangChain" /><br>LangChain
-      </td>
-      <td align="center" width="90">
-        <img src="https://skillicons.dev/icons?i=redis" width="45" alt="Redis" /><br>Redis
-      </td>
-    </tr>
-  </table>
-</div>
 
 <br />
 
@@ -115,6 +85,7 @@
     </tr>
   </table>
 </div>
+
 <br />
 
 <h3>Context-Aware AI Chat</h3>
@@ -132,6 +103,7 @@
     </tr>
   </table>
 </div>
+
 <br />
 
 <h3>Data Ingestion & Controls</h3>
@@ -144,7 +116,7 @@
       </td>
       <td align="center" width="30%">
         <img src="screenshots/upload-mobile.png" alt="Upload Mobile" style="border-radius: 10px; border: 1px solid #444;" height="300">
-        <br><br><strong>Web Mobile</strong>
+        <br><br><strong>Mobile View</strong>
       </td>
     </tr>
     <tr>
@@ -165,37 +137,39 @@
 <h2>🚀 Getting Started</h2>
 
 <h3>1. Backend Setup</h3>
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\\Scripts\\activate
+<pre><code>cd backend
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-```
+</code></pre>
 
 <h3>2. Frontend Setup</h3>
-```bash
-cd ../frontend
+<pre><code>cd ../frontend
 npm install
-```
+</code></pre>
 
 <h3>3. Environment Variables</h3>
 <p>Create <code>.env</code> files in both <code>backend</code> and <code>frontend</code> directories following the <code>.env.example</code> templates.</p>
 
 <h3>4. Run the Application</h3>
-```bash
-# Terminal 1 (Backend)
-cd backend && python -m uvicorn main:app --reload
 
-# Terminal 2 (Frontend)
+<div style="background-color:#0d1117; padding:20px; border-radius:10px; border:1px solid #30363d;">
 
-cd frontend && npm run dev
+  <p style="margin:0 0 10px 0;"><strong>Terminal 1 — Backend</strong></p>
+  <pre style="margin:0 0 20px 0;"><code>cd backend
+python -m uvicorn main:app --reload</code></pre>
 
-```
+  <hr style="border:0; border-top:1px solid #30363d; margin:20px 0;" />
+
+  <p style="margin:0 0 10px 0;"><strong>Terminal 2 — Frontend</strong></p>
+  <pre style="margin:0;"><code>cd frontend
+npm run dev</code></pre>
+
+</div>
 
 <br />
 
 <div align="center">
-  <br />
   <hr />
   <p>
     Built with ❤️ by <a href="https://github.com/CaSh007s"><strong>Kalash Pratap Gaur</strong></a>
@@ -205,4 +179,3 @@ cd frontend && npm run dev
     <a href="https://github.com/CaSh007s/cortex">Repository</a>
   </p>
 </div>
-```
